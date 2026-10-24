@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
+import { hashPassword, verifyPassword } from "better-auth/crypto";
 import { PGlite } from "@electric-sql/pglite";
 import { PGLiteSocketServer } from "@electric-sql/pglite-socket";
 import { Pool } from "pg";
@@ -94,6 +95,33 @@ test("database-backed authentication and owner isolation", async (t) => {
       const q = await pool.query("SELECT count(*)::int AS count FROM sounding_migration");
       assert.ok(q.rows[0].count === 5);
     });
+    await t.test(
+      "no-mail configuration rejects signup without creating an inactive account",
+      async () => {
+        const unavailable = createAuthentication({
+          pool,
+          origin,
+          secret: randomBytes(32).toString("hex"),
+        });
+        const response = await unavailable.handler(
+          new Request(origin + "/api/auth/sign-up/email", {
+            method: "POST",
+            headers: { origin, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: "Blocked signup",
+              email: "blocked@example.test",
+              password,
+            }),
+          }),
+        );
+        assert(!response.ok);
+        assert.equal(cookie(response), "");
+        const count = await pool.query('SELECT count(*)::int AS count FROM "user" WHERE email=$1', [
+          "blocked@example.test",
+        ]);
+        assert.equal(count.rows[0].count, 0);
+      },
+    );
     await t.test("unverified signup cannot authenticate", async () => {
       const response = await request("/sign-up/email", {
         name: "Not verified",
@@ -108,12 +136,100 @@ test("database-backed authentication and owner isolation", async (t) => {
     await signup("bob@example.test");
     const alice = await login("alice@example.test"),
       bob = await login("bob@example.test");
+    await t.test("duplicate signup cannot replace an account or its password", async () => {
+      await pool.query('DELETE FROM "rateLimit"');
+      const before = await pool.query('SELECT password FROM account WHERE "userId"=$1', [
+        alice.owner.userId,
+      ]);
+      const response = await request("/sign-up/email", {
+        name: "Replacement",
+        email: "alice@example.test",
+        password: randomBytes(24).toString("base64url"),
+      });
+      assert.equal(cookie(response), "");
+      const users = await pool.query('SELECT count(*)::int AS count FROM "user" WHERE email=$1', [
+        "alice@example.test",
+      ]);
+      const after = await pool.query('SELECT password FROM account WHERE "userId"=$1', [
+        alice.owner.userId,
+      ]);
+      assert.equal(users.rows[0].count, 1);
+      assert.equal(after.rows[0].password, before.rows[0].password);
+      // The verification-required provider may use a generic success to prevent enumeration.
+      assert(response.ok || response.status === 400 || response.status === 422);
+    });
+    await t.test(
+      "credential errors do not distinguish wrong password from unknown email",
+      async () => {
+        await pool.query('DELETE FROM "rateLimit"');
+        const wrong = await request("/sign-in/email", {
+          email: "alice@example.test",
+          password: "incorrect-password-for-audit",
+        });
+        const unknown = await request("/sign-in/email", {
+          email: "absent@example.test",
+          password: "incorrect-password-for-audit",
+        });
+        assert.equal(wrong.status, 401);
+        assert.equal(unknown.status, wrong.status);
+        assert.deepEqual(await unknown.json(), await wrong.json());
+        assert.equal(cookie(wrong), "");
+        assert.equal(cookie(unknown), "");
+      },
+    );
+    await t.test("forged pre-login cookies cannot fix the authenticated session", async () => {
+      await pool.query('DELETE FROM "rateLimit"');
+      const forged = "sounding.session_token=attacker-chosen-token";
+      assert.equal(await auth.api.getSession({ headers: new Headers({ cookie: forged }) }), null);
+      const response = await request(
+        "/sign-in/email",
+        { email: "alice@example.test", password },
+        forged,
+      );
+      assert(response.ok);
+      const issued = cookie(response);
+      assert(issued && issued !== forged);
+      assert(await auth.api.getSession({ headers: new Headers({ cookie: issued }) }));
+      assert.equal(await auth.api.getSession({ headers: new Headers({ cookie: forged }) }), null);
+      await request("/sign-out", {}, issued);
+      assert.equal(await auth.api.getSession({ headers: new Headers({ cookie: issued }) }), null);
+    });
+    await t.test(
+      "signup validates email and password length before creating credentials",
+      async () => {
+        await pool.query('DELETE FROM "rateLimit"');
+        for (const body of [
+          { name: "Validation", email: "not-an-email", password },
+          { name: "Validation", email: "short@example.test", password: "short" },
+          { name: "Validation", email: "long@example.test", password: "x".repeat(129) },
+        ]) {
+          const response = await request("/sign-up/email", body);
+          assert(!response.ok);
+          assert.equal(cookie(response), "");
+        }
+        const count = await pool.query(
+          'SELECT count(*)::int AS count FROM "user" WHERE email IN ($1,$2)',
+          ["short@example.test", "long@example.test"],
+        );
+        assert.equal(count.rows[0].count, 0);
+      },
+    );
     await t.test("passwords are hashed; session cookie has HttpOnly and SameSite", async () => {
       const result = await pool.query('SELECT password FROM account WHERE "userId"=$1', [
         alice.owner.userId,
       ]);
       assert.ok(result.rows[0].password !== password && result.rows[0].password.length > 64);
       const response = await request("/sign-in/email", { email: "bob@example.test", password });
+      const secondHash = await hashPassword(password);
+      assert.notEqual(
+        secondHash,
+        result.rows[0].password,
+        "Same password receives a fresh random salt.",
+      );
+      assert(await verifyPassword({ hash: result.rows[0].password, password }));
+      assert(
+        !(await verifyPassword({ hash: result.rows[0].password, password: "wrong-password" })),
+      );
       const header = response.headers.getSetCookie().join(";");
       assert.ok(header.includes("HttpOnly") && /SameSite=Lax/i.test(header));
       const invalid = await request("/sign-in/email", {
@@ -254,6 +370,9 @@ test("database-backed authentication and owner isolation", async (t) => {
           "https://attacker.example",
           "/\\attacker.example",
           "/api/auth/sign-out",
+          "/%2f%2fattacker.example",
+          "/home\\\\attacker.example",
+          "/capture/../../api/auth/sign-out",
         ])
           assert.ok(safeReturnPath(value) === "/home");
         assert.ok(

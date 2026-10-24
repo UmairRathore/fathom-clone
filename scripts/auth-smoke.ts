@@ -77,6 +77,36 @@ check(
   (await send("/api/shares", { meetingId: "atlas-launch" })).status === 401,
   "share creation requires an owner session",
 );
+check(
+  (await send("/api/demo", {}, undefined, "")).status === 403,
+  "missing-origin demo login rejected",
+);
+check(
+  (await send("/api/auth/sign-out", {}, undefined, "")).status === 403,
+  "missing-origin logout rejected",
+);
+check(
+  (await send("/api/auth/send-verification-email", { email: "x@example.test" })).status === 503,
+  "verification resend unavailable without delivery",
+);
+check(
+  (
+    await send("/api/auth/reset-password", {
+      token: "not-a-real-token",
+      newPassword: "not-a-real-password",
+    })
+  ).status === 503,
+  "raw password reset remains disabled without delivery",
+);
+const forgedSession = await send(
+  "/api/auth/get-session",
+  undefined,
+  "sounding.session_token=attacker-chosen-token",
+);
+check(
+  forgedSession.ok && (await forgedSession.json()) === null,
+  "forged session cookie grants no identity",
+);
 const first = await send("/api/demo", {}),
   firstCookie = cookie(first);
 check(first.ok && !!firstCookie, "one-click demo issues a real server session");
