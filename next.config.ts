@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 const config: NextConfig = {
   devIndicators: false,
+  outputFileTracingIncludes: { "/api/clips/*/media": ["./public/media/atlas-review.wav"] },
   reactStrictMode: true,
   poweredByHeader: false,
   logging: {

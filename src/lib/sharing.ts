@@ -2,14 +2,17 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:
 import { deflateRawSync, inflateRawSync } from "node:zlib";
 import { z } from "zod";
 import { stateSchema } from "./state";
+import { clipSchema } from "./journey";
 export const shareRequestSchema = z.object({
   meetingId: z.string().min(1).max(100),
+  clip: clipSchema.optional(),
   visibility: z.enum(["unlisted", "restricted"]),
   state: stateSchema,
 });
 const payloadSchema = z.object({
   version: z.literal(1),
   meetingId: z.string().min(1).max(100),
+  clip: clipSchema.optional(),
   visibility: z.enum(["unlisted", "restricted"]),
   issuedAt: z.number().int(),
   expiresAt: z.number().int(),

@@ -89,11 +89,21 @@ Next.js 16 App Router, React 19, strict TypeScript, Tailwind 4/CSS, Lucide, TanS
 
 Authorization is checked in server layouts/pages and each private API. Database queries also require a matching, unexpired session. Private data is scoped by user; demo data by visitor session. No unidentified historical localStorage data is imported into private accounts.
 
+## Recording journey and clips (local assessment additions)
+
+Open http://localhost:3002/capture after choosing Try the public demo. Connect the sample calendar, admit the stub notetaker, replay either scenario, highlight a moment, finish processing, and open its insights. The replay supports 1×/30×/120×; pause and highlight actions save checkpoints. The explicit skip action uses the complete fixture.
+
+On a meeting, create a clip from the playhead or an annotation, set its title/start/end, preview audio, and save. Share clip creates a 24-hour read-only viewer with selected transcript utterances and standalone extracted WAV audio when available. Whole-meeting sharing remains available. Download action items exports current owners, completion states and timestamps. Transcript tools include speaker filters, m:ss jumps and previous/next search matches.
+
+These additions are local and have not been deployed to either existing Vercel URL. Calendar, notetaker, recording lifecycle and insight extraction are explicitly simulated. The hour-long fixture remains transcript-only. See [the verified assessment matrix and evidence](docs/ASSESSMENT-GAP-AUDIT.md).
+
+Run `npx tsx scripts/journey-smoke.ts` against the local app on port 3002 for clip/journey HTTP checks. It uses isolated demo sessions, keeps cookies/share URLs in memory and signs out its sessions afterward.
+
 ## Fixtures and limitations
 
 Atlas launch review has four scripted speakers, eight transcript turns and self-generated Microsoft Zira speech. Timing comes from the actual PCM media boundaries. The participant tiles are illustrative, not video or real diarization. The eight-speaker planning meeting has 240 synthetic segments across 60 minutes. Two additional transcript-only fixtures demonstrate design and customer discussions.
 
-Summaries and Ask are deterministic seeded behavior, not AI inference. Guidance notes persist but are not interpreted by a model. English/Auto retains English source text. No live conferencing bot, calendar/CRM integration, billing, recording upload, invitations or clip editor is connected.
+Summaries and Ask are deterministic seeded behavior, not AI inference. Guidance notes persist but are not interpreted by a model. English/Auto retains English source text. No live conferencing bot, real calendar/CRM integration, billing, recording upload or invitations are connected. The calendar/notetaker journey is a labeled stub; clip creation and fixture-audio export work locally.
 
 Shares are snapshots, not invitations. Previously created links remain usable until their 24-hour expiry even if future sharing is restricted. Keep the same SHARE_SECRET when maintaining an existing deployment's links. Existing production environment variables and deployment were not changed.
 

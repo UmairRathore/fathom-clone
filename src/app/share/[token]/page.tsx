@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import { ClipViewer } from "@/components/clip-viewer";
+import { validClip, clipSegments } from "@/lib/journey";
 import { MeetingView } from "@/components/meeting-view";
 import { getMeeting } from "@/lib/data";
 import { openShare } from "@/lib/sharing";
@@ -23,6 +25,19 @@ export default async function SharedPage({
   if (!payload || payload.visibility === "restricted" || !payload.state) notFound();
   const meeting = getMeeting(payload.meetingId);
   if (!meeting) notFound();
+  if (payload.clip) {
+    if (!validClip(payload.clip, meeting)) notFound();
+    return (
+      <ClipViewer
+        title={payload.clip.title}
+        meetingTitle={meeting.title}
+        clip={payload.clip}
+        participants={meeting.participants}
+        segments={clipSegments(meeting.segments, payload.clip)}
+        mediaUrl={meeting.mediaUrl ? `/api/clips/${token}/media` : undefined}
+      />
+    );
+  }
   const state = restoreState(JSON.stringify(payload.state), meeting);
   const query = await searchParams;
   const parsedTime = Number(query.t);

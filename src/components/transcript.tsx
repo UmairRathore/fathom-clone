@@ -1,4 +1,5 @@
 "use client";
+import { parseTimestamp } from "@/lib/journey";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Search, Copy, ArrowDownToLine, Plus, Diamond, ListTodo } from "lucide-react";
@@ -41,20 +42,24 @@ export function Transcript({
   readonly?: boolean;
 }) {
   const [query, setQuery] = useState(initialQuery);
+  const [speaker, setSpeaker] = useState("");
+  const [timestamp, setTimestamp] = useState("");
+  const [jumpError, setJumpError] = useState("");
   const [follow, setFollow] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const filtered = useMemo(
     () =>
       meeting.segments.filter(
         (s) =>
-          !query.trim() ||
-          s.text.toLowerCase().includes(query.toLowerCase().trim()) ||
-          meeting.participants
-            .find((p) => p.id === s.speakerId)
-            ?.name.toLowerCase()
-            .includes(query.toLowerCase().trim()),
+          (!speaker || s.speakerId === speaker) &&
+          (!query.trim() ||
+            s.text.toLowerCase().includes(query.toLowerCase().trim()) ||
+            meeting.participants
+              .find((p) => p.id === s.speakerId)
+              ?.name.toLowerCase()
+              .includes(query.toLowerCase().trim())),
       ),
-    [meeting, query],
+    [meeting, query, speaker],
   );
   // The virtualizer owns DOM measurements; its functions are intentionally not memoized by React Compiler.
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -89,6 +94,80 @@ export function Transcript({
           Copy Transcript <Copy size={13} />
         </button>
       </div>
+      <div className="transcript-navigation">
+        <label>
+          Speaker
+          <select
+            aria-label="Filter transcript speaker"
+            value={speaker}
+            onChange={(e) => {
+              setSpeaker(e.target.value);
+              scrollRef.current?.scrollTo({ top: 0 });
+            }}
+          >
+            <option value="">All speakers</option>
+            {meeting.participants.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const next = parseTimestamp(timestamp, meeting.duration);
+            if (next === null) {
+              setJumpError(`Enter m:ss between 0:00 and ${formatTime(meeting.duration)}.`);
+              return;
+            }
+            setJumpError("");
+            setQuery("");
+            setSpeaker("");
+            seek(next);
+            setFollow(true);
+          }}
+        >
+          <label>
+            Jump to time
+            <input
+              aria-label="Jump to timestamp"
+              placeholder="52:30"
+              value={timestamp}
+              onChange={(e) => setTimestamp(e.target.value)}
+            />
+          </label>
+          <button className="secondary-button">Go</button>
+        </form>
+        {query && (
+          <>
+            <button
+              className="secondary-button"
+              disabled={!filtered.length}
+              onClick={() => {
+                seek(
+                  ([...filtered].reverse().find((s) => s.start < time - 0.01) ?? filtered.at(-1))!
+                    .start,
+                );
+                setFollow(true);
+              }}
+            >
+              Previous match
+            </button>
+            <button
+              className="secondary-button"
+              disabled={!filtered.length}
+              onClick={() => {
+                seek((filtered.find((s) => s.start > time + 0.01) ?? filtered[0]).start);
+                setFollow(true);
+              }}
+            >
+              Next match
+            </button>
+          </>
+        )}
+      </div>
+      {jumpError && <p role="alert">{jumpError}</p>}
       <div className="transcript-toolbar">
         <span className="transcript-count">
           {filtered.length} {query ? "matches" : "segments"} · {meeting.participants.length}{" "}

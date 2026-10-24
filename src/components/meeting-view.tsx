@@ -12,6 +12,8 @@ import {
   ListTodo,
   Download,
 } from "lucide-react";
+import { ClipEditor } from "./clip-editor";
+import type { Clip } from "@/lib/journey";
 import { Header } from "./header";
 import { MediaPlayer, type SeekRequest } from "./media-player";
 import { Transcript } from "./transcript";
@@ -48,6 +50,8 @@ export function MeetingView({
   const [editor, setEditor] = useState<EditorState | null>(null);
   const [toast, setToast] = useState("");
   const [sharing, setSharing] = useState(false);
+  const [clipRange, setClipRange] = useState<{ start: number; end: number } | null>(null);
+  const [shareClip, setShareClip] = useState<Clip | undefined>(undefined);
   const [viewerPreferences, setViewerPreferences] = useState<SummaryPreferences>(
     initialPreferences ?? { template: "Enhanced", length: "standard", focus: "all", guidance: "" },
   );
@@ -116,6 +120,20 @@ export function MeetingView({
     } catch {
       notify("Clipboard access is unavailable. Try the transcript download.");
     }
+  }
+  function downloadActions() {
+    const text = state.actions
+      .map(
+        (a) =>
+          `- [${a.done ? "x" : " "}] ${a.text} — ${meeting.participants.find((p) => p.id === a.assignee)?.name ?? "Unassigned"} (${formatTime(a.time)})`,
+      )
+      .join("\n");
+    const url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${meeting.id}-action-items.txt`;
+    anchor.click();
+    URL.revokeObjectURL(url);
   }
   function download() {
     const text = meeting.segments
@@ -227,7 +245,11 @@ export function MeetingView({
           <div className="share-row">
             <button
               className="share-button"
-              onClick={() => (shared ? copyTranscript() : setSharing(true))}
+              onClick={() => {
+                setShareClip(undefined);
+                if (shared) void copyTranscript();
+                else setSharing(true);
+              }}
             >
               {shared ? "Copy Transcript" : "Share"}{" "}
               {shared ? <Copy size={14} /> : <Link2 size={14} />}
@@ -264,6 +286,44 @@ export function MeetingView({
               {showSidebar ? "Hide" : "Show"} actions & annotations
             </button>
           </div>
+          {!shared && (
+            <section className="sidebar-section">
+              <div className="section-label">
+                <h2>CLIPS</h2>
+                <button
+                  aria-label="Create clip"
+                  disabled={(state.clips?.length ?? 0) >= 100}
+                  onClick={() =>
+                    setClipRange({
+                      start: Math.min(time, meeting.duration - 1),
+                      end: Math.min(meeting.duration, time + 30),
+                    })
+                  }
+                >
+                  <Plus size={14} />
+                </button>
+              </div>
+              {!state.clips?.length && (
+                <p>Save a moment, preview it, and share it outside your workspace.</p>
+              )}
+              {state.clips?.map((clip) => (
+                <div className="saved-clip" key={clip.id}>
+                  <button onClick={() => jump(clip.start)}>
+                    {clip.title} · {formatTime(clip.start)}–{formatTime(clip.end)}
+                  </button>
+                  <button
+                    className="secondary-button"
+                    onClick={() => {
+                      setShareClip(clip);
+                      setSharing(true);
+                    }}
+                  >
+                    Share clip
+                  </button>
+                </div>
+              ))}
+            </section>
+          )}
           <section className="sidebar-section">
             <div className="section-label">
               <h2>ACTION ITEMS</h2>
@@ -276,6 +336,13 @@ export function MeetingView({
                 </button>
               )}
             </div>
+            <button
+              className="copy-button"
+              onClick={downloadActions}
+              disabled={!state.actions.length}
+            >
+              <Download size={12} /> Download action items
+            </button>
             {state.actions.length ? (
               <div className="action-list">
                 {state.actions.map((a) => (
@@ -385,6 +452,16 @@ export function MeetingView({
                     {!shared && (
                       <button
                         className="annotation-link"
+                        aria-label={`Create clip from ${h.title}`}
+                        disabled={(state.clips?.length ?? 0) >= 100}
+                        onClick={() => setClipRange({ start: h.time, end: h.end })}
+                      >
+                        Clip
+                      </button>
+                    )}
+                    {!shared && (
+                      <button
+                        className="annotation-link"
                         aria-label={`Copy timestamp link for ${h.title}`}
                         onClick={async () => {
                           try {
@@ -425,9 +502,22 @@ export function MeetingView({
       {sharing && !shared && (
         <ShareDialog
           meeting={meeting}
+          clip={shareClip}
           state={state}
           changeVisibility={(value) => save((current) => ({ ...current, sharing: value }))}
           close={() => setSharing(false)}
+        />
+      )}
+      {clipRange && !shared && (
+        <ClipEditor
+          meeting={meeting}
+          {...clipRange}
+          close={() => setClipRange(null)}
+          save={(clip) => {
+            save((current) => ({ ...current, clips: [...(current.clips ?? []), clip] }));
+            setClipRange(null);
+            notify("Clip saved. Use Share clip to create an external link.");
+          }}
         />
       )}
       {editor && !shared && (

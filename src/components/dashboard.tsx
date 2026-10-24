@@ -90,6 +90,9 @@ export function Dashboard() {
           <div className="library-heading">
             <div>
               <h1>My Calls</h1>
+              <Link className="journey-entry" href="/capture">
+                Try the recording journey →
+              </Link>
               <p>Your conversations. All in one place.</p>
             </div>
             <span className="demo-label">

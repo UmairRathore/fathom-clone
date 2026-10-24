@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { categories, type Meeting } from "./domain";
+import { clipSchema, captureSchema, validClip } from "./journey";
 export const actionSchema = z.object({
   id: z.string().min(1).max(100),
   text: z
@@ -27,6 +28,8 @@ export const preferencesSchema = z.object({
 });
 export const stateSchema = z.object({
   version: z.literal(1),
+  clips: z.array(clipSchema).max(100).optional(),
+  capture: captureSchema.optional(),
   actions: z.array(actionSchema).max(200),
   highlights: z.array(highlightSchema).max(200),
   preferences: preferencesSchema,
@@ -49,6 +52,13 @@ export function restoreState(raw: string, meeting: Meeting): MeetingState {
     if (!parsed.success) return defaultState(meeting);
     const state = parsed.data;
     if (
+      state.clips?.some((clip) => !validClip(clip, meeting)) ||
+      (state.capture &&
+        (state.capture.elapsed > meeting.duration ||
+          (["processing", "ready"].includes(state.capture.stage) &&
+            state.capture.elapsed !== meeting.duration) ||
+          (["connected", "scheduled"].includes(state.capture.stage) &&
+            state.capture.elapsed !== 0))) ||
       state.actions.some(
         (a) =>
           a.time >= meeting.duration ||

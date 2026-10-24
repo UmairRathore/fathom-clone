@@ -1,16 +1,19 @@
 "use client";
 import { useState } from "react";
 import { Check, Copy, Globe2, LockKeyhole, ExternalLink } from "lucide-react";
+import type { Clip } from "@/lib/journey";
 import { Modal } from "./modal";
 import type { Meeting } from "@/lib/domain";
 import type { MeetingState } from "@/lib/state";
 export function ShareDialog({
   meeting,
+  clip,
   state,
   changeVisibility,
   close,
 }: {
   meeting: Meeting;
+  clip?: Clip;
   state: MeetingState;
   changeVisibility: (value: MeetingState["sharing"]) => void;
   close: () => void;
@@ -30,7 +33,7 @@ export function ShareDialog({
         const response = await fetch("/api/shares", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ meetingId: meeting.id, visibility: state.sharing, state }),
+          body: JSON.stringify({ meetingId: meeting.id, visibility: state.sharing, state, clip }),
         });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error ?? "Could not create the share link.");
@@ -51,10 +54,19 @@ export function ShareDialog({
     }
   }
   return (
-    <Modal title="Share Recording" close={close}>
+    <Modal title={clip ? "Share clip" : "Share Recording"} close={close}>
       <p className="modal-description">
-        Share a read-only snapshot of <strong>{meeting.title}</strong>, including your current
-        actions and highlights.
+        {clip ? (
+          <>
+            Share “{clip.title}” from {clip.start} to {clip.end} seconds. Guests see the selected
+            transcript segments and, when available, extracted audio.
+          </>
+        ) : (
+          <>
+            Share a read-only snapshot of <strong>{meeting.title}</strong>, including your current
+            actions and highlights.
+          </>
+        )}
       </p>
       <div className="share-subheading">PEOPLE WITH ACCESS</div>
       <div className="share-owner">

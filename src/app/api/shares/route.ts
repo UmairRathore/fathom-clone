@@ -4,6 +4,7 @@ import { getPool } from "@/lib/db";
 import { ownerFor } from "@/lib/workspace";
 import { getOwnedMeeting } from "@/lib/workspace-store";
 import { sameOrigin } from "@/lib/http-security";
+import { validClip } from "@/lib/journey";
 import { restoreState } from "@/lib/state";
 import { sealShare, shareRequestSchema, SHARE_TTL } from "@/lib/sharing";
 export const runtime = "nodejs";
@@ -37,10 +38,12 @@ export async function POST(request: NextRequest) {
     const parsed = shareRequestSchema.safeParse(JSON.parse(raw));
     if (!parsed.success)
       return NextResponse.json({ error: "Invalid meeting snapshot." }, { status: 400 });
-    const { meetingId, visibility, state } = parsed.data;
+    const { meetingId, visibility, state, clip } = parsed.data;
     const saved = await getOwnedMeeting(getPool(), ownerFor(session), meetingId);
     const meeting = saved?.meeting;
     if (!meeting) return NextResponse.json({ error: "Meeting not found." }, { status: 404 });
+    if (clip && !validClip(clip, meeting))
+      return NextResponse.json({ error: "Invalid clip range." }, { status: 400 });
     const restored = restoreState(JSON.stringify(state), meeting);
     if (JSON.stringify(restored) !== JSON.stringify(state))
       return NextResponse.json(
@@ -52,6 +55,7 @@ export async function POST(request: NextRequest) {
     const token = sealShare(
       {
         version: 1,
+        clip,
         meetingId,
         visibility,
         issuedAt,

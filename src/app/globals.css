@@ -2425,3 +2425,144 @@ button:hover {
   top: 0;
   color: #dfdfe5;
 }
+
+/* Recording journey and clips share the workspace's existing visual tokens. */
+.journey-page {
+  max-width: 960px;
+  margin: 36px auto;
+  padding: 24px;
+}
+.journey-page h1 {
+  font-size: 30px;
+  margin: 24px 0 14px;
+}
+.journey-page h2,
+.journey-page h3 {
+  margin: 20px 0 12px;
+}
+.journey-page p {
+  line-height: 1.65;
+  margin: 12px 0;
+}
+.journey-notice {
+  padding: 16px;
+  border: 1px solid #32424c;
+  border-radius: 12px;
+  background: #18252d;
+  color: #b8dbe8;
+}
+.journey-card {
+  padding: 24px;
+  border: 1px solid #35383e;
+  border-radius: 16px;
+  margin-top: 24px;
+  background: #181a1f;
+}
+.journey-steps {
+  display: flex;
+  gap: 16px;
+  list-style-position: inside;
+  flex-wrap: wrap;
+  color: #999fa9;
+  text-transform: capitalize;
+}
+.journey-steps [aria-current] {
+  color: #5dd6ff;
+  font-weight: 700;
+}
+.journey-page select,
+.journey-page input,
+.transcript-navigation select,
+.transcript-navigation input {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #41464f;
+  background: #22252b;
+  color: #eee;
+  max-width: 100%;
+}
+.journey-page label {
+  display: grid;
+  gap: 8px;
+}
+.journey-card progress {
+  width: 100%;
+  accent-color: #00beff;
+}
+.journey-card blockquote {
+  padding: 20px;
+  border-left: 3px solid #00beff;
+  line-height: 1.65;
+  margin: 20px 0;
+}
+.journey-controls,
+.transcript-navigation {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+.transcript-navigation label {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+}
+.transcript-navigation form {
+  display: flex;
+  gap: 8px;
+  align-items: end;
+}
+.transcript-navigation input {
+  width: 100px;
+}
+.transcript-navigation select {
+  max-width: 180px;
+}
+.journey-entry {
+  display: inline-block;
+  color: #5dd6ff;
+  margin: 10px 0;
+  font-size: 13px;
+}
+.saved-clip {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #343840;
+  font-size: 12px;
+}
+.saved-clip > button:first-child {
+  text-align: left;
+  color: #c4e9f5;
+}
+.clip-segment {
+  border-left: 3px solid #343840;
+  padding: 16px;
+  margin: 12px 0;
+}
+.clip-segment.is-active {
+  border-color: #00beff;
+  background: #18252d;
+}
+.journey-page audio {
+  width: 100%;
+  margin-top: 18px;
+}
+@media (max-width: 600px) {
+  .journey-page {
+    padding: 16px;
+    margin: 16px auto;
+  }
+  .journey-card {
+    padding: 16px;
+  }
+  .journey-controls > button {
+    width: 100%;
+  }
+  .journey-page h1 {
+    font-size: 26px;
+  }
+}
