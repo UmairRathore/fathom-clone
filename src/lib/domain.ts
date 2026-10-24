@@ -6,6 +6,10 @@ export type ActionItem = {
   time: number;
   done: boolean;
   assignee?: string;
+  assigneeName?: string | null;
+  dueDate?: string | null;
+  description?: string;
+  sourceSegmentId?: string;
 };
 export const categories = [
   "Highlight",
@@ -23,7 +27,12 @@ export type Highlight = {
   category: Category;
   description: string;
 };
-export type SummarySection = { title: string; bullets: string[]; time: number };
+export type SummarySection = {
+  title: string;
+  bullets: string[];
+  time: number;
+  bulletTimes?: number[];
+};
 export type SummaryTemplate = "Enhanced" | "Project Update";
 export type Meeting = {
   id: string;
@@ -34,6 +43,11 @@ export type Meeting = {
   status: "ready" | "processing";
   kind: "recording" | "synthetic";
   mediaUrl?: string;
+  source?: "upload";
+  mediaType?: "audio" | "video";
+  transcriptionModel?: string;
+  analysisModel?: string;
+  language?: string | null;
   description: string;
   segments: Segment[];
   summaries: Record<SummaryTemplate, SummarySection[]>;

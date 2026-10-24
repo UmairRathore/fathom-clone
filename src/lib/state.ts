@@ -11,6 +11,10 @@ export const actionSchema = z.object({
   time: z.number().finite().nonnegative(),
   done: z.boolean(),
   assignee: z.string().optional(),
+  assigneeName: z.string().max(120).nullable().optional(),
+  dueDate: z.string().max(120).nullable().optional(),
+  description: z.string().max(600).optional(),
+  sourceSegmentId: z.string().max(100).optional(),
 });
 export const highlightSchema = z.object({
   id: z.string().min(1).max(100),

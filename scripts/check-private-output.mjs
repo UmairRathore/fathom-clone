@@ -20,6 +20,9 @@ for (const file of [".env.local", ".env.auth.local"]) {
         "SHARE_SECRET",
         "GOOGLE_CLIENT_SECRET",
         "RESEND_API_KEY",
+        "OPEN_AI_APIKEY",
+        "OPENAI_API_KEY",
+        "BLOB_READ_WRITE_TOKEN",
       ].includes(name) &&
       value.length >= 12
     ) {

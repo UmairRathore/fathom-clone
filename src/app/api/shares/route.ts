@@ -42,6 +42,11 @@ export async function POST(request: NextRequest) {
     const saved = await getOwnedMeeting(getPool(), ownerFor(session), meetingId);
     const meeting = saved?.meeting;
     if (!meeting) return NextResponse.json({ error: "Meeting not found." }, { status: 404 });
+    if (meeting.source === "upload")
+      return NextResponse.json(
+        { error: "Private uploaded recordings cannot be shared in this module." },
+        { status: 403 },
+      );
     if (clip && !validClip(clip, meeting))
       return NextResponse.json({ error: "Invalid clip range." }, { status: 400 });
     const restored = restoreState(JSON.stringify(state), meeting);

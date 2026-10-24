@@ -70,7 +70,9 @@ export function Transcript({
     overscan: 4,
     getItemKey: (index) => filtered[index].id,
   });
-  const activeId = meeting.segments[activeSegment(meeting.segments, time)]?.id;
+  const candidate = meeting.segments[activeSegment(meeting.segments, time)];
+  const activeId =
+    candidate && time + 0.001 >= candidate.start && time < candidate.end ? candidate.id : undefined;
   const activeIndex = filtered.findIndex((s) => s.id === activeId);
   useEffect(() => {
     if (follow && activeIndex >= 0) virtualizer.scrollToIndex(activeIndex, { align: "start" });
@@ -171,7 +173,7 @@ export function Transcript({
       <div className="transcript-toolbar">
         <span className="transcript-count">
           {filtered.length} {query ? "matches" : "segments"} · {meeting.participants.length}{" "}
-          speakers
+          {meeting.participants.length === 1 ? "speaker" : "speakers"}
         </span>
         <button className="auto-scroll" aria-pressed={follow} onClick={() => setFollow(!follow)}>
           <ArrowDownToLine size={11} />

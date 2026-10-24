@@ -90,6 +90,9 @@ export function Dashboard() {
           <div className="library-heading">
             <div>
               <h1>My Calls</h1>
+              <Link className="primary-button" href="/upload">
+                Upload Recording
+              </Link>
               <Link className="journey-entry" href="/capture">
                 Try the recording journey →
               </Link>
@@ -128,52 +131,61 @@ export function Dashboard() {
               </select>
             </label>
           </div>
-          {["2026-10-24", "2026-10-23"].map((date, group) => {
-            const groupMeetings = filtered.filter((m) => m.date.startsWith(date));
-            return (
-              groupMeetings.length > 0 && (
-                <section className="date-group" key={date}>
-                  <div className="date-heading">
-                    <h2>{group ? "Yesterday" : "Today"}</h2>
-                    <span>{group ? "October 23" : "October 24"}</span>
-                    <div />
-                  </div>
-                  <div className="meeting-grid">
-                    {groupMeetings.map((m) => (
-                      <Link className="meeting-card" href={`/calls/${m.id}`} key={m.id}>
-                        <div className="meeting-thumbnail">
-                          <ParticipantTiles meeting={m} compact />
-                          <div className="thumbnail-hover">
+          {[...new Set(filtered.map((m) => m.date.slice(0, 10)))]
+            .sort()
+            .reverse()
+            .map((date) => {
+              const groupMeetings = filtered.filter((m) => m.date.startsWith(date));
+              return (
+                groupMeetings.length > 0 && (
+                  <section className="date-group" key={date}>
+                    <div className="date-heading">
+                      <h2>
+                        {new Date(date + "T00:00:00Z").toLocaleDateString("en-US", {
+                          month: "long",
+                          day: "numeric",
+                          timeZone: "UTC",
+                        })}
+                      </h2>
+                      <span>{date.slice(0, 4)}</span>
+                      <div />
+                    </div>
+                    <div className="meeting-grid">
+                      {groupMeetings.map((m) => (
+                        <Link className="meeting-card" href={`/calls/${m.id}`} key={m.id}>
+                          <div className="meeting-thumbnail">
+                            <ParticipantTiles meeting={m} compact />
+                            <div className="thumbnail-hover">
+                              <span>
+                                <Play size={20} fill="currentColor" />
+                              </span>
+                            </div>
+                            <span className="duration-badge">{formatTime(m.duration)}</span>
+                            {m.kind === "synthetic" && (
+                              <span className="synthetic-badge">TRANSCRIPT DEMO</span>
+                            )}
+                          </div>
+                          <div className="card-title-row">
+                            <h3>{m.title}</h3>
+                            <ArrowUpRight size={16} />
+                          </div>
+                          <div className="card-meta">
                             <span>
-                              <Play size={20} fill="currentColor" />
+                              <Users size={12} />
+                              {m.participants.length} participants
+                            </span>
+                            <span>
+                              <CheckCircle2 size={12} />
+                              {m.status === "ready" ? "Ready" : "Processing"}
                             </span>
                           </div>
-                          <span className="duration-badge">{formatTime(m.duration)}</span>
-                          {m.kind === "synthetic" && (
-                            <span className="synthetic-badge">TRANSCRIPT DEMO</span>
-                          )}
-                        </div>
-                        <div className="card-title-row">
-                          <h3>{m.title}</h3>
-                          <ArrowUpRight size={16} />
-                        </div>
-                        <div className="card-meta">
-                          <span>
-                            <Users size={12} />
-                            {m.participants.length} participants
-                          </span>
-                          <span>
-                            <CheckCircle2 size={12} />
-                            {m.status === "ready" ? "Ready" : "Processing"}
-                          </span>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </section>
-              )
-            );
-          })}
+                        </Link>
+                      ))}
+                    </div>
+                  </section>
+                )
+              );
+            })}
           {!filtered.length && (
             <div className="empty-state">
               <Search size={30} />
@@ -193,7 +205,7 @@ export function Dashboard() {
           <div className="library-footnote">
             <Video size={15} />
             <span>
-              All meetings use fictional demo content.{" "}
+              Sample meetings use fictional content. Your uploads stay private.{" "}
               <Link href="/calls/atlas-launch">
                 Try the synchronized recording <ArrowUpRight size={12} />
               </Link>

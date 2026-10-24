@@ -1,4 +1,6 @@
 import { spawn } from "node:child_process";
+import { mkdir, mkdtemp, writeFile, unlink, rmdir } from "node:fs/promises";
+import { join } from "node:path";
 export async function vercelFetch(url: string, options: RequestInit = {}) {
   const headers = new Headers(options.headers);
   const args = [
@@ -18,21 +20,41 @@ export async function vercelFetch(url: string, options: RequestInit = {}) {
     "--request",
     options.method ?? "GET",
   ];
-  for (const [name, value] of headers) args.push("--header", name + ": " + value);
-  if (options.body) args.push("--data-binary", "@-");
-  const output = await new Promise<string>((resolve, reject) => {
-    const child = spawn("npm", args, { stdio: ["pipe", "pipe", "pipe"] });
-    const chunks: Buffer[] = [];
-    child.stdout.on("data", (chunk: Buffer) => chunks.push(chunk));
-    child.stderr.resume(); // CLI diagnostics may contain sensitive URLs; never forward them.
-    child.stdin.end(typeof options.body === "string" ? options.body : undefined);
-    child.on("error", () => reject(new Error("Authorized preview request could not start.")));
-    child.on("exit", (code) =>
-      code === 0
-        ? resolve(Buffer.concat(chunks).toString("utf8"))
-        : reject(new Error("Authorized preview request failed.")),
-    );
-  });
+  // Keep cookies and request bodies out of process arguments and CLI diagnostics.
+  const parent = join(process.cwd(), ".vercel");
+  await mkdir(parent, { recursive: true });
+  const directory = await mkdtemp(join(parent, "curl-"));
+  const config = join(directory, "request.conf"),
+    body = join(directory, "body.txt");
+  const lines = [...headers].map(
+    ([name, value]) => "header = " + JSON.stringify(name + ": " + value),
+  );
+  if (typeof options.body === "string") {
+    await writeFile(body, options.body, { mode: 0o600 });
+    lines.push("data-binary = " + JSON.stringify("@" + body));
+  }
+  await writeFile(config, lines.join("\n"), { mode: 0o600 });
+  args.push("--config", config);
+  let output: string;
+  try {
+    output = await new Promise<string>((resolve, reject) => {
+      const child = spawn("npm", args, { stdio: ["pipe", "pipe", "pipe"] });
+      const chunks: Buffer[] = [];
+      child.stdout.on("data", (chunk: Buffer) => chunks.push(chunk));
+      child.stderr.resume();
+      child.stdin.end();
+      child.on("error", () => reject(new Error("Authorized preview request could not start.")));
+      child.on("exit", (code) =>
+        code === 0
+          ? resolve(Buffer.concat(chunks).toString("utf8"))
+          : reject(new Error("Authorized preview request failed.")),
+      );
+    });
+  } finally {
+    await unlink(config).catch(() => {});
+    await unlink(body).catch(() => {});
+    await rmdir(directory).catch(() => {});
+  }
   const matches = [...output.matchAll(/(?:^|\r?\n)HTTP\/(?:1\.[01]|2|3) (\d{3})[^\r\n]*\r?\n/g)];
   const match = matches.at(-1);
   if (!match) throw new Error("Preview HTTP response could not be parsed.");

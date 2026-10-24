@@ -9,7 +9,7 @@ export function sameOrigin(request: Request) {
 }
 export function safeReturnPath(value?: string | null) {
   // Only workspace destinations; no protocol-relative URL, escaping or arbitrary redirect.
-  return value && /^\/(home|account|calls\/[a-zA-Z0-9-]+)(\?[^\\\r\n]*)?$/.test(value)
+  return value && /^\/(home|account|upload|calls\/[a-zA-Z0-9-]+)(\?[^\\\r\n]*)?$/.test(value)
     ? value
     : "/home";
 }

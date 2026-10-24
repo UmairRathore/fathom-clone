@@ -24,7 +24,7 @@ export function MeetingAsk({
       <Sparkles color="#03bced" size={24} />
       <h2>A little clarity goes a long way.</h2>
       <p>
-        Explore this meeting’s decisions and next steps. Answers use seeded content and keyword
+        Explore this meeting’s decisions and next steps. Answers use saved content and keyword
         matching, with links back to the discussion.
       </p>
       <div className="ask-question-grid">
@@ -41,7 +41,11 @@ export function MeetingAsk({
       </div>
       {answer && (
         <div className="ask-answer" role="status">
-          <small>DEMO ANSWER · NO AI INFERENCE</small>
+          <small>
+            {meeting.source === "upload"
+              ? "TRANSCRIPT LOOKUP · NO ADDITIONAL AI REQUEST"
+              : "DEMO ANSWER · NO AI INFERENCE"}
+          </small>
           <p style={{ whiteSpace: "pre-line" }}>{answer.text}</p>
           <div className="answer-citations">
             {answer.citations.map((c, i) => (
@@ -67,7 +71,11 @@ export function MeetingAsk({
           maxLength={500}
         />
         <div>
-          <small>Grounded in this meeting · Demo</small>
+          <small>
+            {meeting.source === "upload"
+              ? "Grounded in saved transcript · Keyword lookup"
+              : "Grounded in this meeting · Demo"}
+          </small>
           <button disabled={!question.trim()} aria-label="Send meeting question">
             <ArrowUp size={17} />
           </button>

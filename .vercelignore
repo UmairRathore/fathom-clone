@@ -13,3 +13,5 @@ CAPTURE-TEST.md
 
 .local-postgres/
 .auth-test/
+
+.module-private

@@ -125,7 +125,7 @@ export function MeetingView({
     const text = state.actions
       .map(
         (a) =>
-          `- [${a.done ? "x" : " "}] ${a.text} — ${meeting.participants.find((p) => p.id === a.assignee)?.name ?? "Unassigned"} (${formatTime(a.time)})`,
+          `- [${a.done ? "x" : " "}] ${a.text} — ${meeting.participants.find((p) => p.id === a.assignee)?.name ?? a.assigneeName ?? "Unassigned"} (${formatTime(a.time)})`,
       )
       .join("\n");
     const url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
@@ -245,13 +245,23 @@ export function MeetingView({
           <div className="share-row">
             <button
               className="share-button"
+              disabled={meeting.source === "upload"}
+              title={
+                meeting.source === "upload"
+                  ? "Private uploads are owner-only in Module 1"
+                  : undefined
+              }
               onClick={() => {
                 setShareClip(undefined);
                 if (shared) void copyTranscript();
                 else setSharing(true);
               }}
             >
-              {shared ? "Copy Transcript" : "Share"}{" "}
+              {shared
+                ? "Copy Transcript"
+                : meeting.source === "upload"
+                  ? "Private recording"
+                  : "Share"}{" "}
               {shared ? <Copy size={14} /> : <Link2 size={14} />}
             </button>
             <div className="more-wrap">
@@ -286,7 +296,7 @@ export function MeetingView({
               {showSidebar ? "Hide" : "Show"} actions & annotations
             </button>
           </div>
-          {!shared && (
+          {!shared && meeting.source !== "upload" && (
             <section className="sidebar-section">
               <div className="section-label">
                 <h2>CLIPS</h2>
@@ -372,6 +382,8 @@ export function MeetingView({
                       <div className="action-meta">
                         <button onClick={() => jump(a.time)}>{formatTime(a.time)}</button>
                         <span>·</span>
+                        {!a.assignee && a.assigneeName && <span>{a.assigneeName}</span>}
+                        {a.dueDate && <span>Due: {a.dueDate}</span>}
                         {shared ? (
                           <span>
                             {meeting.participants.find((p) => p.id === a.assignee)?.name ??
@@ -428,7 +440,12 @@ export function MeetingView({
             <div className="section-label">
               <h2>ANNOTATIONS</h2>
               <small>
-                <LockKeyhole size={10} /> {shared ? "SHARED DEMO" : "DEMO CONTENT"}
+                <LockKeyhole size={10} />{" "}
+                {shared
+                  ? "SHARED DEMO"
+                  : meeting.source === "upload"
+                    ? "PRIVATE CONTENT"
+                    : "DEMO CONTENT"}
               </small>
             </div>
             {state.highlights.length ? (
@@ -449,7 +466,7 @@ export function MeetingView({
                         </span>
                       </span>
                     </button>
-                    {!shared && (
+                    {!shared && meeting.source !== "upload" && (
                       <button
                         className="annotation-link"
                         aria-label={`Create clip from ${h.title}`}
@@ -495,7 +512,9 @@ export function MeetingView({
             {shared
               ? "Read-only snapshot · Valid for 24 hours after creation."
               : "Edits are saved to your workspace."}{" "}
-            All people and content are fictional.
+            {meeting.source === "upload"
+              ? "AI speaker labels describe voices, not verified identities."
+              : "All people and content are fictional."}
           </p>
         </aside>
       </main>

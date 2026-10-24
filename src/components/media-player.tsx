@@ -17,14 +17,18 @@ export function MediaPlayer({
   seekRequest: SeekRequest;
   highlights: Highlight[];
 }) {
-  const audio = useRef<HTMLAudioElement>(null);
+  const audio = useRef<HTMLMediaElement>(null);
   const surface = useRef<HTMLDivElement>(null);
+  const retryTime = useRef<number | null>(null);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
   const [speed, setSpeed] = useState("1");
   const [error, setError] = useState("");
   const [ready, setReady] = useState(false);
-  const active = meeting.segments[activeSegment(meeting.segments, time)];
+  const Media = meeting.mediaType === "video" ? "video" : "audio";
+  const candidate = meeting.segments[activeSegment(meeting.segments, time)];
+  const active =
+    candidate && time + 0.001 >= candidate.start && time < candidate.end ? candidate : undefined;
   useEffect(() => {
     if (audio.current && (ready || audio.current.readyState >= 1))
       audio.current.currentTime = Math.min(seekRequest.time, meeting.duration);
@@ -52,25 +56,50 @@ export function MediaPlayer({
     <div
       className="media-player"
       ref={surface}
-      aria-label={meeting.mediaUrl ? "Meeting audio player" : "Transcript timeline"}
+      aria-label={
+        meeting.mediaUrl
+          ? meeting.mediaType === "video"
+            ? "Meeting video player"
+            : "Meeting audio player"
+          : "Transcript timeline"
+      }
     >
       {meeting.mediaUrl ? (
         <>
-          <ParticipantTiles meeting={meeting} activeId={active?.speakerId} />
-          <span className="media-note">SYNTHESIZED SPEECH · DEMO RECORDING</span>
-          <audio
-            ref={audio}
+          {meeting.mediaType !== "video" && (
+            <ParticipantTiles meeting={meeting} activeId={active?.speakerId} />
+          )}
+          <span className="media-note">
+            {meeting.source === "upload"
+              ? "PRIVATE RECORDING · ORIGINAL MEDIA"
+              : "SYNTHESIZED SPEECH · DEMO RECORDING"}
+          </span>
+          <Media
+            className={meeting.mediaType === "video" ? "uploaded-video" : undefined}
+            ref={(element) => {
+              audio.current = element;
+            }}
             src={meeting.mediaUrl}
             preload="metadata"
-            aria-label="Atlas launch review audio"
-            onLoadedMetadata={() => setReady(true)}
+            aria-label={
+              meeting.source === "upload"
+                ? "Private meeting recording"
+                : "Atlas launch review audio"
+            }
+            onLoadedMetadata={(event) => {
+              setReady(true);
+              if (retryTime.current !== null) {
+                event.currentTarget.currentTime = retryTime.current;
+                retryTime.current = null;
+              }
+            }}
             onTimeUpdate={(e) => onTime(e.currentTarget.currentTime)}
             onPlay={() => setPlaying(true)}
             onPause={() => setPlaying(false)}
             onEnded={() => setPlaying(false)}
             onError={() =>
               setError(
-                "The demo audio could not load. You can still read and navigate the transcript.",
+                "The recording could not load or its temporary media URL expired. Retry to refresh access; the transcript remains available.",
               )
             }
           />
@@ -95,6 +124,7 @@ export function MediaPlayer({
             className="secondary-button"
             onClick={() => {
               setError("");
+              retryTime.current = time;
               audio.current?.load();
             }}
           >

@@ -95,15 +95,23 @@ Open http://localhost:3002/capture after choosing Try the public demo. Connect t
 
 On a meeting, create a clip from the playhead or an annotation, set its title/start/end, preview audio, and save. Share clip creates a 24-hour read-only viewer with selected transcript utterances and standalone extracted WAV audio when available. Whole-meeting sharing remains available. Download action items exports current owners, completion states and timestamps. Transcript tools include speaker filters, m:ss jumps and previous/next search matches.
 
-These additions are local and have not been deployed to either existing Vercel URL. Calendar, notetaker, recording lifecycle and insight extraction are explicitly simulated. The hour-long fixture remains transcript-only. See [the verified assessment matrix and evidence](docs/ASSESSMENT-GAP-AUDIT.md).
+These features are included in the development preview release; the original production deployment remains unchanged. Calendar, notetaker, recording lifecycle and insight extraction are explicitly simulated. The hour-long fixture remains transcript-only. See [the verified assessment matrix and evidence](docs/ASSESSMENT-GAP-AUDIT.md).
 
 Run `npx tsx scripts/journey-smoke.ts` against the local app on port 3002 for clip/journey HTTP checks. It uses isolated demo sessions, keeps cookies/share URLs in memory and signs out its sessions afterward.
+
+## Module 1: real recording processing
+
+[Upload Recording](http://localhost:3002/upload) adds private MP4/WebM/MP3/M4A/WAV uploads (five minutes, 24 MB), grounded OpenAI transcription, strict gpt-4o-mini insights, durable Neon jobs and authorized playback. Public demo visitors cannot upload private recordings or consume AI credits. Existing synthetic meetings remain available.
+
+One authorized 4:27.833 MP4 completed the genuine browser upload → transcription → analysis → persistent meeting → original playback journey: 56 segments, four evidence-linked actions, one highlight. Exactly two billable requests ran. Final token-based estimated cost: US$0.0781; conservative ledger reservations: US$0.40 of the US$1 authorization. Further paid processing is disabled pending new authorization.
+
+See [Module 1 architecture, cost reconciliation, evidence and limitations](docs/REAL-AI-PROCESSING.md). Credentials, recordings, QA account data and private output stay outside Git in ignored configuration and private storage.
 
 ## Fixtures and limitations
 
 Atlas launch review has four scripted speakers, eight transcript turns and self-generated Microsoft Zira speech. Timing comes from the actual PCM media boundaries. The participant tiles are illustrative, not video or real diarization. The eight-speaker planning meeting has 240 synthetic segments across 60 minutes. Two additional transcript-only fixtures demonstrate design and customer discussions.
 
-Summaries and Ask are deterministic seeded behavior, not AI inference. Guidance notes persist but are not interpreted by a model. English/Auto retains English source text. No live conferencing bot, real calendar/CRM integration, billing, recording upload or invitations are connected. The calendar/notetaker journey is a labeled stub; clip creation and fixture-audio export work locally.
+Synthetic-meeting summaries and Ask are deterministic seeded behavior. Uploaded recordings use the cached real AI analysis; Ask remains a labeled keyword lookup. Guidance notes persist but are not interpreted by a model. English/Auto retains English source text. No live conferencing bot, real calendar/CRM integration, billing, invitations are connected. The calendar/notetaker journey is a labeled stub; clip creation and fixture-audio export work locally.
 
 Shares are snapshots, not invitations. Previously created links remain usable until their 24-hour expiry even if future sharing is restricted. Keep the same SHARE_SECRET when maintaining an existing deployment's links. Existing production environment variables and deployment were not changed.
 

@@ -92,7 +92,7 @@ test("database-backed authentication and owner isolation", async (t) => {
     await t.test("schema migration is repeatable", async () => {
       await migrate(pool);
       const q = await pool.query("SELECT count(*)::int AS count FROM sounding_migration");
-      assert.ok(q.rows[0].count === 2);
+      assert.ok(q.rows[0].count === 4);
     });
     await t.test("unverified signup cannot authenticate", async () => {
       const response = await request("/sign-up/email", {

@@ -44,6 +44,11 @@ export function SummaryPanel({
       return;
     }
     setCustomize(false);
+    if (meeting.source === "upload") {
+      setSections(buildDemoSummary(meeting, next, actions));
+      update(next);
+      return;
+    }
     setBusy(true);
     setProgress(0);
     for (const [index, value] of [25, 50, 75].entries())
@@ -127,7 +132,9 @@ export function SummaryPanel({
           <div className="summary-notice">
             <Sparkles size={12} />
             <span>
-              Demo summary · Prepared from fictional content.
+              {meeting.source === "upload"
+                ? "AI summary · Generated from this recording with gpt-4o-mini. Verify against the source transcript."
+                : "Demo summary · Prepared from fictional content."}
               {preferences.length === "concise" ? " Concise format." : ""}
               {preferences.focus !== "all" ? ` Focus: ${preferences.focus}.` : ""}
             </span>
@@ -144,7 +151,10 @@ export function SummaryPanel({
                   <ul>
                     {section.bullets.map((bullet, index) => (
                       <li key={index}>
-                        <button onClick={() => seek(section.time)} title="Go to discussion">
+                        <button
+                          onClick={() => seek(section.bulletTimes?.[index] ?? section.time)}
+                          title="Go to discussion"
+                        >
                           {bullet}
                         </button>
                       </li>
@@ -154,14 +164,15 @@ export function SummaryPanel({
               )}
             </section>
           ))}
-          {!readonly && (
+          {!readonly && meeting.source !== "upload" && (
             <button className="regenerate-button" onClick={() => generate(preferences)}>
               <RefreshCw size={12} /> Regenerate demo summary
             </button>
           )}
           <p className="summary-footnote">
-            Deterministic summaries use seeded meeting content. No audio transcription or AI
-            inference occurs.{" "}
+            {meeting.source === "upload"
+              ? "Template changes reuse cached AI output. Manual edits are stored separately; no additional AI request is made."
+              : "Deterministic summaries use seeded meeting content. No audio transcription or AI inference occurs."}{" "}
             {preferences.guidance && (
               <>Your saved guidance: “{preferences.guidance}” (reference note).</>
             )}
@@ -174,8 +185,8 @@ export function SummaryPanel({
           close={() => setCustomize(false)}
         >
           <p className="modal-description">
-            Choose how your demo summary is organized. These options apply deterministic rules to
-            the seeded content.
+            Choose how your summary is organized. These options reorganize the saved summary without
+            another AI request.
           </p>
           <label>
             Summary length

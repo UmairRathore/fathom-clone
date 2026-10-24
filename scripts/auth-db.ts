@@ -23,7 +23,7 @@ export async function migrate(pool: Pool) {
     );
     await client.query("SELECT pg_advisory_xact_lock(824701)");
     for (const name of (await readdir("migrations"))
-      .filter((n) => /^00[23]-.*\.sql$/.test(n))
+      .filter((n) => /^00[2-9]-.*\.sql$/.test(n))
       .sort()) {
       const exists = await client.query("SELECT 1 FROM sounding_migration WHERE name=$1", [name]);
       if (!exists.rowCount) {

@@ -27,9 +27,10 @@ export function buildDemoSummary(
       { title: "Meeting Purpose", bullets: source[0].bullets, time: 0 },
       {
         title: "Action Items & Owners",
+        bulletTimes: actions.map((a) => a.time),
         bullets: actions.map(
           (a) =>
-            `${meeting.participants.find((p) => p.id === a.assignee)?.name ?? "Unassigned"}: ${a.text}${a.done ? " (completed)" : ""}`,
+            `${meeting.participants.find((p) => p.id === a.assignee)?.name ?? a.assigneeName ?? "Unassigned"}: ${a.text}${a.done ? " (completed)" : ""}`,
         ),
         time: actions[0]?.time ?? 0,
       },
@@ -55,7 +56,7 @@ export function answerMeetingQuestion(
         ? actions
             .map(
               (a) =>
-                `${meeting.participants.find((p) => p.id === a.assignee)?.name ?? "Unassigned"}: ${a.text}`,
+                `${meeting.participants.find((p) => p.id === a.assignee)?.name ?? a.assigneeName ?? "Unassigned"}: ${a.text}`,
             )
             .join("\n\n")
         : "There are no action items yet. Add one from a transcript segment.",

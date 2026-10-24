@@ -7,7 +7,7 @@ const problems = [];
 for (const file of files) {
   if (
     file !== ".env.example" &&
-    /(^|\/)\.env(\.|$)|recon\/(?:auth\/)?screenshots\/|\.local-postgres\/|\.auth-test\/|node_modules\/|\.next\//.test(
+    /(^|\/)\.env(\.|$)|\.module-private\/|recon\/(?:auth\/)?screenshots\/|\.local-postgres\/|\.auth-test\/|node_modules\/|\.next\//.test(
       file,
     )
   )
