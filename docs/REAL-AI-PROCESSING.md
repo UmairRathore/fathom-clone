@@ -95,4 +95,13 @@ No word-level timing, speaker identity verification, Urdu live test, arbitrary A
 
 ## Release verification
 
-Preview URL, final commits and post-deployment checks are recorded after the protected preview release. Original public production is never promoted by this module.
+- Implementation commit: `912a19f` on `codex/authentication-preview`; includes the reviewed automatic capture append. The preceding recording-journey/clip commit `a4912b9` is preserved.
+- Protected preview: [Sounding upload](https://sounding-preview-umair-rathore.vercel.app/upload), deployment `25fkHgLzA23LrjKfDwfX8MB3jWCD`, built from the implementation commit. Vercel Authentication remains enabled; no public bypass was added.
+- Local final production build: 23 authentication + 18 journey/clip + 30 private-recording HTTP checks passed (71 total), in addition to 31 automated tests.
+- Deployed preview: all 30 private-recording HTTP checks passed again, plus seven release/authentication/original-production checks. A separate owner readiness check confirmed `canProcess: false` and the existing job remained Ready.
+- Deployed browser: private sign-in succeeded; the original video played with duration 267.833 seconds, readyState 4 and no media error. Seeking to 120 seconds synchronized the active transcript row. No private frame or speech was saved as screenshot evidence.
+- Final ledger reconciliation still shows exactly two successful provider operations, US$0.07806735 estimated usage and US$0.40 reserved. Remote cache/readback checks did not create another provider request.
+- [Safe local upload completion proof](screenshots/module1/upload-ready.jpg) and [safe preview proof](screenshots/module1/preview-ready.jpg) contain the neutral test title and status only.
+- Original production remains [the public demo](https://fathom-clone-three.vercel.app), still pointing to its previous deployment `A6s6ZwNCC2QE622thEYELCSaYY37`. Both local `main` and `origin/main` remain `7cf99f9b686f76f77465ca4dbe2fff610b8cfc51`. No production promotion or production database change was made.
+
+The follow-up evidence commit records these release results. The preview implementation does not require another deployment for documentation-only changes. To inspect the private processed meeting, use the already authenticated local or preview browser tab, select the Ready recording, and open the meeting. The public demo remains isolated from this private recording.
