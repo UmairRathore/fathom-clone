@@ -5,6 +5,7 @@ import type { Meeting, Participant, Segment } from "./domain";
 import { clipSchema, validClip, type Clip } from "./journey";
 import { getOwnedMeeting, workspaceKey, type Owner } from "./workspace-store";
 import { SHARE_TTL } from "./sharing";
+import { temporaryAccount } from "./temporary-accounts";
 export const MAX_CLIP_SECONDS = 120;
 export const guestClipSchema = z.object({
   title: z.string(),
@@ -187,7 +188,10 @@ export async function createClipShare(
     if (count >= 20)
       throw new ClipError("Daily clip preparation limit reached. Existing links still work.");
     const id = randomUUID(),
-      expiresAt = Date.now() + SHARE_TTL;
+      expiresAt = Math.min(
+        Date.now() + SHARE_TTL,
+        (await temporaryAccount(client, owner.userId))?.expires_at.getTime() ?? Infinity,
+      );
     const view = guestView(meeting, clip, expiresAt);
     grant = (
       await client.query(
@@ -239,7 +243,7 @@ export async function publicClip(
   if (!/^v2\.[A-Za-z0-9_-]{43}$/.test(token)) return null;
   const grant = (
     await pool.query(
-      `SELECT g.* FROM sounding_clip_share g JOIN sounding_meeting m ON m.workspace_id=g.workspace_id AND m.id=g.meeting_id WHERE g.token_hash=$1 AND g.status='ready' AND g.revoked_at IS NULL AND g.expires_at>now() AND EXISTS(SELECT 1 FROM jsonb_array_elements(coalesce(m.state->'clips','[]'::jsonb)) c WHERE c->>'id'=g.clip_id AND c->'start'=g.clip->'start' AND c->'end'=g.clip->'end' AND c->'title'=g.clip->'title') AND (m.meeting->>'source' IS DISTINCT FROM 'upload' OR EXISTS(SELECT 1 FROM sounding_recording r WHERE r.id=g.meeting_id AND r.workspace_id=g.workspace_id AND r.status='ready'))`,
+      `SELECT g.* FROM sounding_clip_share g JOIN sounding_meeting m ON m.workspace_id=g.workspace_id AND m.id=g.meeting_id WHERE sounding_account_active((SELECT owner_id FROM sounding_workspace WHERE id=g.workspace_id)) AND g.token_hash=$1 AND g.status='ready' AND g.revoked_at IS NULL AND g.expires_at>now() AND EXISTS(SELECT 1 FROM jsonb_array_elements(coalesce(m.state->'clips','[]'::jsonb)) c WHERE c->>'id'=g.clip_id AND c->'start'=g.clip->'start' AND c->'end'=g.clip->'end' AND c->'title'=g.clip->'title') AND (m.meeting->>'source' IS DISTINCT FROM 'upload' OR EXISTS(SELECT 1 FROM sounding_recording r WHERE r.id=g.meeting_id AND r.workspace_id=g.workspace_id AND r.status='ready'))`,
       [digest(token)],
     )
   ).rows[0] as Grant | undefined;

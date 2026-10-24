@@ -7,6 +7,7 @@ import { getPool } from "@/lib/db";
 import { ownerFor } from "@/lib/workspace";
 import { getOwnedMeeting } from "@/lib/workspace-store";
 import { sameOrigin } from "@/lib/http-security";
+import { temporaryAccount } from "@/lib/temporary-accounts";
 import { validClip } from "@/lib/journey";
 import { restoreState } from "@/lib/state";
 import { sealShare, shareRequestSchema, SHARE_TTL } from "@/lib/sharing";
@@ -84,7 +85,10 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     const issuedAt = Date.now(),
-      expiresAt = issuedAt + SHARE_TTL;
+      expiresAt = Math.min(
+        issuedAt + SHARE_TTL,
+        (await temporaryAccount(getPool(), session.user.id))?.expires_at.getTime() ?? Infinity,
+      );
     const token = sealShare(
       {
         version: 1,

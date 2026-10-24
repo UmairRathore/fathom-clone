@@ -51,7 +51,7 @@ export async function getRecording(
 ): Promise<RecordingJob | null> {
   if (owner.demo) return null;
   const result = await pool.query(
-    `SELECT r.* FROM sounding_recording r JOIN session s ON s.id=$2 AND s."userId"=r.owner_id AND s."expiresAt">now() WHERE r.id=$1 AND r.owner_id=$3 AND r.status <> 'cancelled'`,
+    `SELECT r.* FROM sounding_recording r JOIN session s ON s.id=$2 AND s."userId"=r.owner_id AND s."expiresAt">now() AND sounding_account_active(s."userId") WHERE r.id=$1 AND r.owner_id=$3 AND r.status <> 'cancelled'`,
     [id, owner.sessionId, owner.userId],
   );
   return result.rows[0] ?? null;
@@ -60,7 +60,7 @@ export async function listRecordings(pool: Pool, owner: Owner): Promise<Recordin
   if (owner.demo) return [];
   return (
     await pool.query(
-      `SELECT r.* FROM sounding_recording r JOIN session s ON s.id=$1 AND s."userId"=r.owner_id AND s."expiresAt">now() WHERE r.owner_id=$2 AND r.status <> 'cancelled' ORDER BY r.created_at DESC LIMIT 30`,
+      `SELECT r.* FROM sounding_recording r JOIN session s ON s.id=$1 AND s."userId"=r.owner_id AND s."expiresAt">now() AND sounding_account_active(s."userId") WHERE r.owner_id=$2 AND r.status <> 'cancelled' ORDER BY r.created_at DESC LIMIT 30`,
       [owner.sessionId, owner.userId],
     )
   ).rows;
@@ -79,7 +79,7 @@ export async function createRecording(
     await client.query("BEGIN");
     await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [owner.userId]);
     const session = await client.query(
-      'SELECT id FROM session WHERE id=$1 AND "userId"=$2 AND "expiresAt">now()',
+      'SELECT id FROM session WHERE id=$1 AND "userId"=$2 AND "expiresAt">now() AND sounding_account_active("userId")',
       [owner.sessionId, owner.userId],
     );
     if (!session.rowCount) throw new ProcessingError("unauthorized");

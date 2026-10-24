@@ -1,12 +1,17 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useWorkspace } from "./workspace-provider";
 import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
-export function AccountPanel({ emailEnabled }: { emailEnabled: boolean }) {
+export function AccountPanel() {
   const workspace = useWorkspace();
   const [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
   if (!workspace) return null;
   const { profile } = workspace;
   async function update(event: React.FormEvent<HTMLFormElement>) {
@@ -34,10 +39,36 @@ export function AccountPanel({ emailEnabled }: { emailEnabled: boolean }) {
       <dl>
         <dt>Name</dt>
         <dd>{profile.name}</dd>
-        <dt>Account</dt>
+        <dt>Login ID</dt>
         <dd>{profile.email}</dd>
         <dt>Workspace</dt>
         <dd>{profile.demo ? "Isolated demo visitor" : "Private account"}</dd>
+        {profile.temporary && (
+          <>
+            <dt>Status</dt>
+            <dd>Temporary account</dd>
+            <dt>Created</dt>
+            <dd>
+              <time dateTime={profile.temporary.createdAt}>
+                {new Date(profile.temporary.createdAt).toISOString()}
+              </time>
+            </dd>
+            <dt>Account expires</dt>
+            <dd>
+              <time dateTime={profile.temporary.expiresAt}>
+                {new Date(profile.temporary.expiresAt).toISOString()}
+              </time>
+            </dd>
+            <dt>Remaining lifetime</dt>
+            <dd>
+              {Math.max(
+                0,
+                Math.ceil((new Date(profile.temporary.expiresAt).getTime() - now) / 60000),
+              )}{" "}
+              minutes
+            </dd>
+          </>
+        )}
         <dt>Session expires</dt>
         <dd>
           <time dateTime={profile.expiresAt}>{new Date(profile.expiresAt).toUTCString()}</time>
@@ -46,7 +77,9 @@ export function AccountPanel({ emailEnabled }: { emailEnabled: boolean }) {
       <p>
         {profile.demo
           ? "Your changes are isolated to this sign-in session. Signing out removes this demo workspace. Shared demo credentials cannot be changed."
-          : "Your meeting changes are saved to your private account and available across sign-in sessions."}
+          : profile.temporary
+            ? "Your private workspace remains available across sign-in sessions until the original account deadline."
+            : "Your meeting changes are saved to your established private account."}
       </p>
       {!profile.demo && (
         <form onSubmit={update}>
@@ -57,17 +90,30 @@ export function AccountPanel({ emailEnabled }: { emailEnabled: boolean }) {
           <button disabled={busy}>Save name</button>
         </form>
       )}
-      {!profile.demo && (
-        <p>
-          {profile.canResetPassword ? (
-            <>
-              <Link href="/forgot-password">Reset password</Link>
-              {!emailEnabled && " · Email delivery is not enabled yet."}
-            </>
-          ) : (
-            "Your account uses Google. Recover access through Google."
-          )}
-        </p>
+      {profile.temporary && (
+        <>
+          <button
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(profile.email);
+                setMessage("Login ID copied.");
+              } catch {
+                setMessage("Select and copy the login ID above.");
+              }
+            }}
+          >
+            Copy login ID
+          </button>
+          <p>
+            Your password was displayed when your account was created. For security, it cannot be
+            retrieved.
+          </p>
+          <p>
+            Access expires at the account deadline. Physical cleanup runs daily with retries,
+            starting at least 15 minutes after expiry; deletion can be delayed by scheduling or
+            storage failures.
+          </p>
+        </>
       )}
       {message && <p role="status">{message}</p>}
       <button disabled={busy} onClick={logout}>

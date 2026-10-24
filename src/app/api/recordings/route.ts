@@ -1,3 +1,4 @@
+import { temporaryAccount } from "@/lib/temporary-accounts";
 import { getPool } from "@/lib/db";
 import { sameOrigin } from "@/lib/http-security";
 import { ensureWorkspace } from "@/lib/workspace-store";
@@ -34,7 +35,12 @@ export async function POST(request: Request) {
     const job = await createRecording(getPool(), owner, data);
     const target =
       job.status === "uploading"
-        ? await uploadUrl(job.media_key, job.mime_type, job.size_bytes)
+        ? await uploadUrl(
+            job.media_key,
+            job.mime_type,
+            job.size_bytes,
+            (await temporaryAccount(getPool(), owner.userId))?.expires_at.getTime(),
+          )
         : null;
     return Response.json({ job: jobView(job), upload: target }, responseOptions);
   } catch (e) {

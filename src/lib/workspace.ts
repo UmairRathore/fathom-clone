@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getAuth, isDemoEmail } from "./auth";
 import { getPool } from "./db";
+import { temporaryAccount } from "./temporary-accounts";
 import { ensureWorkspace, listOwnedMeetings, type Owner } from "./workspace-store";
 export const currentSession = cache(async () =>
   getAuth().api.getSession({ headers: await headers() }),
@@ -20,12 +21,8 @@ export const requireWorkspace = cache(async () => {
   const owner = ownerFor(session);
   await ensureWorkspace(getPool(), owner);
   const saved = await listOwnedMeetings(getPool(), owner);
-  const credential = owner.demo
-    ? null
-    : await getPool().query(
-        'SELECT 1 FROM account WHERE "userId"=$1 AND "providerId"=$2 AND password IS NOT NULL',
-        [session.user.id, "credential"],
-      );
+  const temporary = await temporaryAccount(getPool(), session.user.id);
+  if (temporary && !temporary.active) redirect("/users/sign_in?reason=expired");
   return {
     owner,
     saved,
@@ -33,7 +30,13 @@ export const requireWorkspace = cache(async () => {
       name: session.user.name,
       email: owner.demo ? "Public demo" : session.user.email,
       demo: owner.demo,
-      canResetPassword: !!credential?.rowCount,
+      canResetPassword: false,
+      temporary: temporary
+        ? {
+            createdAt: temporary.created_at.toISOString(),
+            expiresAt: temporary.expires_at.toISOString(),
+          }
+        : undefined,
       expiresAt: session.session.expiresAt.toISOString(),
     },
   };

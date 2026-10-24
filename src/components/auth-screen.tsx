@@ -1,361 +1,313 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
-import {
-  AudioLines,
-  ArrowLeft,
-  ArrowRight,
-  LoaderCircle,
-  Mail,
-  Play,
-  ShieldCheck,
-  Eye,
-  EyeOff,
-} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { AudioLines, ArrowRight, Play, ShieldCheck } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { safeReturnPath } from "@/lib/http-security";
 export type AuthMode = "login" | "signup" | "email" | "forgot" | "reset";
+type Issued = { loginId: string; password: string; createdAt: string; expiresAt: string };
 export function AuthScreen({
   mode,
-  google,
-  emailEnabled,
   next,
   reason,
-  validToken = true,
 }: {
   mode: AuthMode;
-  google: boolean;
-  emailEnabled: boolean;
   next?: string;
   reason?: string;
-  validToken?: boolean;
 }) {
-  const [busy, setBusy] = useState(""),
+  const [busy, setBusy] = useState(false),
     [message, setMessage] = useState(""),
-    [success, setSuccess] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+    [issued, setIssued] = useState<Issued | null>(null),
+    [reveal, setReveal] = useState(false);
+  const submitting = useRef(false);
   const destination = safeReturnPath(next);
-  const title = {
-    login: "Sign in to Sounding",
-    signup: "Sign up for Sounding",
-    email: "Sign in with email",
-    forgot: "Reset your password",
-    reset: "Choose a new password",
-  }[mode];
+  useEffect(() => {
+    const discard = () => {
+      setIssued(null);
+      setReveal(false);
+    };
+    window.addEventListener("pagehide", discard);
+    window.addEventListener("pageshow", discard);
+    return () => {
+      window.removeEventListener("pagehide", discard);
+      window.removeEventListener("pageshow", discard);
+    };
+  }, []);
   async function demo() {
-    setBusy("demo");
+    setBusy(true);
     setMessage("");
     try {
-      const response = await fetch("/api/demo", { method: "POST" });
-      if (!response.ok) throw new Error("The demo is temporarily unavailable. Please try again.");
+      const r = await fetch("/api/demo", { method: "POST" });
+      if (!r.ok) throw new Error();
       window.location.assign(destination);
-    } catch (e) {
-      setMessage(e instanceof Error ? e.message : "Could not sign in.");
-      setBusy("");
-    }
-  }
-  async function googleSignIn() {
-    setBusy("google");
-    setMessage("");
-    try {
-      const { error } = await authClient.signIn.social({
-        provider: "google",
-        callbackURL: destination,
-        errorCallbackURL: "/users/sign_in?reason=oauth",
-      });
-      if (error) throw new Error();
     } catch {
-      setMessage("Google sign-in could not be started. Please try again.");
-      setBusy("");
+      setMessage("The demo is temporarily unavailable. Please try again.");
+      setBusy(false);
     }
   }
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setBusy("submit");
+    if (submitting.current) return;
+    submitting.current = true;
+    setBusy(true);
     setMessage("");
     const data = new FormData(event.currentTarget);
-    const email = String(data.get("email") ?? ""),
-      password = String(data.get("password") ?? "");
     try {
-      if (mode === "email") {
+      if (mode === "signup") {
+        const r = await fetch("/api/temporary-accounts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: String(data.get("name") ?? "").trim() }),
+        });
+        if (!r.ok) {
+          const result = await r.json();
+          setMessage(result.message ?? "Could not create an account.");
+        } else setIssued(await r.json());
+      } else {
         const { error } = await authClient.signIn.email({
-          email,
-          password,
+          email: String(data.get("email") ?? "")
+            .trim()
+            .toLowerCase(),
+          password: String(data.get("password") ?? ""),
           callbackURL: destination,
         });
-        if (error) {
+        if (error)
           setMessage(
-            "We couldn't sign you in. Check your email and password, or verify your email first.",
+            "We couldn't sign you in. Check your login ID and password. Temporary accounts expire after 24 hours.",
           );
-        } else {
+        else {
           window.location.assign(destination);
           return;
-        }
-      } else if (mode === "signup") {
-        const { error } = await authClient.signUp.email({
-          email,
-          password,
-          name: String(data.get("name") ?? ""),
-          callbackURL: "/users/sign_in",
-        });
-        if (error)
-          setMessage("Unable to create this account. Check your details or try signing in.");
-        else {
-          setSuccess(true);
-          setMessage("Check your email to verify your account, then sign in.");
-        }
-      } else if (mode === "forgot") {
-        const { error } = await authClient.requestPasswordReset({
-          email,
-          redirectTo: "/reset-password",
-        });
-        if (error) setMessage("Password reset is temporarily unavailable. Please try again later.");
-        else {
-          setSuccess(true);
-          setMessage(
-            "If this address has a password account, a reset link will arrive shortly. The link expires in 15 minutes.",
-          );
-        }
-      } else if (mode === "reset") {
-        // Read the token only into memory; never print, persist or include it in screenshots.
-        const token = new URLSearchParams(window.location.search).get("token") ?? "";
-        const { error } = await authClient.resetPassword({ newPassword: password, token });
-        if (error) setMessage("This reset link is invalid or expired. Request a new link.");
-        else {
-          setSuccess(true);
-          setMessage("Your password has been reset. Sign in with your new password.");
-          window.history.replaceState(null, "", "/reset-password");
         }
       }
     } catch {
       setMessage("Unable to connect. Please try again.");
     }
-    setBusy("");
+    submitting.current = false;
+    setBusy(false);
   }
-  const form = mode !== "login" && (mode !== "signup" || emailEnabled);
+  async function copy(value: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      setMessage("Copied. Keep your credentials private.");
+    } catch {
+      setMessage("Clipboard unavailable. Select and copy the displayed value.");
+    }
+  }
+  function download() {
+    if (!issued) return;
+    const url = URL.createObjectURL(
+      new Blob(
+        [
+          `Sounding temporary account\nLogin ID: ${issued.loginId}\nPassword: ${issued.password}\nExpires: ${issued.expiresAt}\nKeep this file private. Passwords cannot be recovered.\n`,
+        ],
+        { type: "text/plain;charset=utf-8" },
+      ),
+    );
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "sounding-temporary-credentials.txt";
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  const recovery = mode === "forgot" || mode === "reset";
   return (
     <main className="auth-page">
-      <Link className="auth-brand" href="/users/sign_in" aria-label="Sounding sign in">
-        SOUNDING <AudioLines size={27} strokeWidth={3} />
+      <Link className="auth-brand" href="/users/sign_in">
+        SOUNDING <AudioLines size={27} />
       </Link>
       <div className="auth-composition">
         <section className="auth-card" aria-labelledby="auth-heading">
-          {mode === "signup" && (
-            <span className="auth-rocket" aria-hidden="true">
-              🚀
-            </span>
-          )}
-          <h1 id="auth-heading">{title}</h1>
-          {mode === "signup" && (
-            <p className="auth-subtitle">Connect your work email to get started in minutes</p>
-          )}
-          {mode === "forgot" && (
-            <p className="auth-subtitle">
-              For email and password accounts. Google accounts recover access through Google.
-            </p>
-          )}
-          {mode === "reset" && (
-            <p className="auth-subtitle">
-              Use at least 12 characters. Resetting signs out your other sessions.
-            </p>
-          )}
-          {reason && (
-            <p className="auth-notice" role="status">
-              {reason === "oauth"
-                ? "Google sign-in was not completed. Please try again."
-                : reason === "signed-out"
-                  ? "You have been signed out."
-                  : "Your session has ended. Sign in to continue."}
-            </p>
-          )}
-          {(mode === "login" || mode === "signup") && (
+          <h1 id="auth-heading">
+            {issued
+              ? "Your temporary account is ready"
+              : mode === "signup"
+                ? "Create a temporary account"
+                : recovery
+                  ? "Password recovery unavailable"
+                  : mode === "email"
+                    ? "Sign in with your login ID"
+                    : "Sign in to Sounding"}
+          </h1>
+          {issued ? (
             <>
-              <div className="auth-providers">
-                <button
-                  className="auth-provider"
-                  onClick={googleSignIn}
-                  disabled={!!busy || !google}
-                >
-                  {busy === "google" ? (
-                    <LoaderCircle className="spin" size={18} />
-                  ) : (
-                    <span className="google-mark" aria-hidden="true">
-                      G
-                    </span>
-                  )}
-                  Continue with Google
+              <p className="auth-notice">
+                You are signed in. This is the only time your password is available. Save your
+                credentials before continuing.
+              </p>
+              <label>
+                Login ID
+                <input aria-label="Generated login ID" readOnly value={issued.loginId} />
+              </label>
+              <button className="auth-provider" onClick={() => copy(issued.loginId)}>
+                Copy login ID
+              </button>
+              <label>
+                Generated password
+                <input
+                  aria-label="Generated password"
+                  autoComplete="off"
+                  readOnly
+                  type={reveal ? "text" : "password"}
+                  value={issued.password}
+                />
+              </label>
+              <div className="journey-controls">
+                <button onClick={() => setReveal(!reveal)}>
+                  {reveal ? "Hide password" : "Reveal password"}
                 </button>
-                {!google && (
-                  <p className="auth-config-note">
-                    Google sign-in will be available once configured.
-                  </p>
-                )}
-                {mode === "login" && (
-                  <>
-                    <Link
-                      className="auth-provider"
-                      href={`/users/sign_in/email?next=${encodeURIComponent(destination)}`}
-                    >
-                      <Mail size={18} />
-                      Continue with email
-                    </Link>
-                    <button className="auth-provider auth-demo" disabled={!!busy} onClick={demo}>
-                      {busy === "demo" ? (
-                        <LoaderCircle className="spin" size={18} />
-                      ) : (
-                        <Play size={17} />
-                      )}
-                      Try the public demo
-                    </button>
-                    <p className="auth-config-note">
-                      No account needed. Your demo changes stay separate from other visitors.
-                    </p>
-                  </>
-                )}
+                <button onClick={() => copy(issued.password)}>Copy password</button>
               </div>
-            </>
-          )}
-          {mode === "signup" && !emailEnabled && (
-            <p className="auth-notice">
-              Email account creation is not enabled yet.{" "}
-              <Link href="/users/sign_in">Try the public demo</Link> while private sign-in is
-              configured.
-            </p>
-          )}
-          {form && !success && (
-            <form className="auth-form" onSubmit={submit}>
-              {mode === "signup" && (
-                <label>
-                  Your name
-                  <input name="name" autoComplete="name" required maxLength={80} />
-                </label>
-              )}
-              {mode !== "reset" && (
-                <label>
-                  Email Address
-                  <input
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="you@example.com"
-                    required
-                    maxLength={254}
-                    disabled={(mode === "forgot" || mode === "signup") && !emailEnabled}
-                  />
-                </label>
-              )}
-              {(mode === "email" || mode === "signup" || mode === "reset") && (
-                <label>
-                  Password
-                  <div className="password-field">
-                    <input
-                      name="password"
-                      type={showPassword ? "text" : "password"}
-                      required
-                      minLength={mode === "email" ? 1 : 12}
-                      maxLength={128}
-                      autoComplete={mode === "email" ? "current-password" : "new-password"}
-                      disabled={mode === "reset" && (!emailEnabled || !validToken)}
-                    />
-                    <button
-                      type="button"
-                      aria-label={showPassword ? "Hide password" : "Show password"}
-                      onClick={() => setShowPassword((v) => !v)}
-                    >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </label>
-              )}
-              {mode === "email" && (
-                <Link className="auth-forgot" href="/forgot-password">
-                  Forgot password?
-                </Link>
-              )}
-              {(mode === "forgot" || mode === "signup" || mode === "reset") && !emailEnabled && (
-                <p className="auth-notice">
-                  Email delivery is not enabled yet. Use the public demo{google ? " or Google" : ""}{" "}
-                  to continue.
-                </p>
-              )}
-              {mode === "reset" && !validToken && (
-                <p className="auth-notice">
-                  This reset link is invalid or expired. Request a new link.
-                </p>
-              )}
+              <p>
+                Expires:{" "}
+                <time dateTime={issued.expiresAt}>{new Date(issued.expiresAt).toUTCString()}</time>
+              </p>
+              <button className="auth-provider" onClick={download}>
+                Download credentials
+              </button>
+              <p className="auth-config-note">
+                The downloaded file contains your password. Keep it private. No password copy is
+                retained by Sounding.
+              </p>
               <button
                 className="auth-primary"
-                disabled={
-                  !!busy ||
-                  ((mode === "forgot" || mode === "signup" || mode === "reset") && !emailEnabled) ||
-                  (mode === "reset" && !validToken)
-                }
+                onClick={() => {
+                  setIssued(null);
+                  setReveal(false);
+                  window.location.replace(destination);
+                }}
               >
-                {busy === "submit" ? (
-                  <LoaderCircle size={18} className="spin" />
-                ) : mode === "signup" ? (
-                  "Create account"
-                ) : mode === "forgot" ? (
-                  "Send reset link"
-                ) : mode === "reset" ? (
-                  "Reset password"
-                ) : (
-                  "Log In"
-                )}
-                <ArrowRight size={17} />
+                Continue to workspace <ArrowRight size={17} />
               </button>
-            </form>
+            </>
+          ) : recovery ? (
+            <>
+              <p className="auth-notice">
+                Password recovery is currently unavailable. Temporary accounts expire after 24
+                hours. If you lose your credentials, create a new temporary account.
+              </p>
+              <Link className="auth-provider" href="/users/sign_up">
+                Create account
+              </Link>
+              <button className="auth-provider auth-demo" disabled={busy} onClick={demo}>
+                <Play size={17} />
+                Try the public demo
+              </button>
+            </>
+          ) : (
+            <>
+              {reason && (
+                <p className="auth-notice" role="status">
+                  {reason === "signed-out"
+                    ? "You have been signed out."
+                    : "Your session or temporary account has expired. Sign in again or create a new account."}
+                </p>
+              )}
+              {mode === "signup" && (
+                <p className="auth-notice">
+                  Your account and workspace expire after 24 hours. Save your login credentials if
+                  you want to return before then. No real email address is needed.
+                </p>
+              )}
+              {mode === "login" ? (
+                <div className="auth-providers">
+                  <Link
+                    className="auth-provider"
+                    href={`/users/sign_in/email?next=${encodeURIComponent(destination)}`}
+                  >
+                    Continue with login ID
+                  </Link>
+                  <Link className="auth-provider" href="/users/sign_up">
+                    Create account
+                  </Link>
+                </div>
+              ) : (
+                <form className="auth-form" onSubmit={submit}>
+                  {mode === "signup" ? (
+                    <label>
+                      Your name
+                      <input name="name" autoComplete="name" required maxLength={80} />
+                    </label>
+                  ) : (
+                    <>
+                      <label>
+                        Login ID
+                        <input
+                          name="email"
+                          type="text"
+                          autoComplete="username"
+                          required
+                          maxLength={254}
+                          placeholder="Your generated login ID"
+                        />
+                      </label>
+                      <label>
+                        Password
+                        <input
+                          name="password"
+                          type="password"
+                          autoComplete="current-password"
+                          required
+                          maxLength={128}
+                        />
+                      </label>
+                      <Link className="auth-forgot" href="/forgot-password">
+                        Forgot password?
+                      </Link>
+                    </>
+                  )}
+                  <button className="auth-primary" disabled={busy}>
+                    {busy ? "Please wait…" : mode === "signup" ? "Create account" : "Log In"}
+                    <ArrowRight size={17} />
+                  </button>
+                </form>
+              )}
+              <button className="auth-provider auth-demo" disabled={busy} onClick={demo}>
+                <Play size={17} />
+                Try the public demo
+              </button>
+              <p className="auth-config-note">
+                Instant access without credentials. Demo changes stay separate from other visitors
+                and are discarded on sign-out.
+              </p>
+            </>
           )}
           {message && (
-            <p
-              className={success ? "auth-success" : "auth-error"}
-              role={success ? "status" : "alert"}
-            >
+            <p className="auth-notice" role="status">
               {message}
             </p>
           )}
           <p className="auth-switch">
-            {mode === "login" ? (
-              <>
-                New to Sounding? <Link href="/users/sign_up">Sign up</Link>
-              </>
-            ) : mode === "signup" ? (
-              <>
-                Already have a Sounding account? <Link href="/users/sign_in">Sign in</Link>
-              </>
-            ) : (
-              <Link href="/users/sign_in">
-                <ArrowLeft size={15} /> Back to Login
-              </Link>
-            )}
+            <Link href={mode === "login" ? "/users/sign_up" : "/users/sign_in"}>
+              {mode === "login" ? "Create a temporary account" : "Back to sign in"}
+            </Link>
           </p>
           <p className="auth-policy">
-            An independent educational demo. All sample meeting content is fictional.
+            An independent educational demo. Sample meeting content is fictional.
             <br />
             <Link href="/privacy">Privacy &amp; demo information</Link>
           </p>
         </section>
         <aside className="auth-story">
-          <span className="auth-quote" aria-hidden="true">
-            “
-          </span>
           <p>
             Be present for the conversation.
             <br />
             <strong>Remember what matters.</strong>
           </p>
           <span>Your meetings. Your workspace.</span>
-          <div className="auth-story-line" />
-          <small>Review recordings, find decisions, and turn conversations into next steps.</small>
+          <small>
+            Temporary account access ends after 24 hours. Physical cleanup runs daily and may be
+            delayed if storage is unavailable.
+          </small>
         </aside>
       </div>
       <footer className="auth-trust">
         <span>
-          <ShieldCheck size={18} /> Server-side sessions
+          <ShieldCheck size={18} />
+          Server-side sessions
         </span>
-        <span>Private workspaces</span>
-        <span>Read-only sharing</span>
-        <span>Independent assessment project</span>
+        <span>Isolated workspaces</span>
+        <span>Passwords stored as secure hashes</span>
       </footer>
     </main>
   );

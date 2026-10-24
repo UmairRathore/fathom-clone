@@ -1,3 +1,4 @@
+import { temporaryAccount } from "@/lib/temporary-accounts";
 import { getPool } from "@/lib/db";
 import { getRecording } from "@/lib/recordings/jobs";
 import { recordingActor, recordingError } from "@/lib/recordings/server";
@@ -13,7 +14,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     return new Response(null, {
       status: 307,
       headers: {
-        Location: await playbackUrl(job.media_key),
+        Location: await playbackUrl(
+          job.media_key,
+          (await temporaryAccount(getPool(), owner.userId))?.expires_at.getTime(),
+        ),
         "Cache-Control": "private, no-store",
         "Referrer-Policy": "no-referrer",
       },

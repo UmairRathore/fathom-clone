@@ -8,6 +8,7 @@ type Profile = {
   demo: boolean;
   canResetPassword: boolean;
   expiresAt: string;
+  temporary?: { createdAt: string; expiresAt: string };
 };
 type Workspace = {
   saved: SavedMeeting[];

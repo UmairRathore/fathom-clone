@@ -1,7 +1,7 @@
 import { get, del, issueSignedToken, presignUrl } from "@vercel/blob";
 import { MAX_BYTES, ProcessingError } from "./schema";
-export async function uploadUrl(pathname: string, mime: string, size: number) {
-  const validUntil = Date.now() + 10 * 60 * 1000;
+export async function uploadUrl(pathname: string, mime: string, size: number, deadline = Infinity) {
+  const validUntil = Math.min(Date.now() + 10 * 60 * 1000, deadline);
   const token = await issueSignedToken({
     pathname,
     operations: ["put"],
@@ -21,8 +21,8 @@ export async function uploadUrl(pathname: string, mime: string, size: number) {
   });
   return { url: result.presignedUrl, expiresAt: validUntil };
 }
-export async function playbackUrl(pathname: string) {
-  const validUntil = Date.now() + 2 * 60 * 1000;
+export async function playbackUrl(pathname: string, deadline = Infinity) {
+  const validUntil = Math.min(Date.now() + 2 * 60 * 1000, deadline);
   const token = await issueSignedToken({ pathname, operations: ["get"], validUntil });
   const result = await presignUrl(token, {
     access: "private",

@@ -1,4 +1,6 @@
 import { betterAuth } from "better-auth";
+import { APIError } from "better-auth/api";
+import { temporaryAccount } from "./temporary-accounts";
 import type { Pool } from "pg";
 
 export type AuthMail = { to: string; subject: string; url: string };
@@ -7,7 +9,6 @@ export function createAuthentication(options: {
   secret: string;
   origin: string;
   sendMail?: (mail: AuthMail) => Promise<void>;
-  google?: { clientId: string; clientSecret: string };
 }) {
   return betterAuth({
     appName: "Sounding",
@@ -50,9 +51,33 @@ export function createAuthentication(options: {
             options.sendMail!({ to: user.email, subject: "Verify your Sounding email", url })
         : undefined,
     },
-    socialProviders: options.google
-      ? { google: { ...options.google, scope: ["openid", "email", "profile"] } }
-      : {},
+    socialProviders: {},
+    databaseHooks: {
+      session: {
+        create: {
+          before: async (session) => {
+            const account = await temporaryAccount(options.pool, session.userId);
+            if (account && !account.active)
+              throw new APIError("UNAUTHORIZED", { message: "Invalid login ID or password." });
+            return {
+              data: {
+                ...session,
+                ...(account
+                  ? {
+                      expiresAt: new Date(
+                        Math.min(
+                          new Date(session.expiresAt).getTime(),
+                          account.expires_at.getTime(),
+                        ),
+                      ),
+                    }
+                  : {}),
+              },
+            };
+          },
+        },
+      },
+    },
     account: { accountLinking: { enabled: false }, encryptOAuthTokens: true },
     session: {
       expiresIn: 60 * 60 * 24,

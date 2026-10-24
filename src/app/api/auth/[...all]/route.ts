@@ -1,4 +1,4 @@
-import { getAuth, emailReady, isDemoEmail } from "@/lib/auth";
+import { getAuth, isDemoEmail } from "@/lib/auth";
 import { sameOrigin } from "@/lib/http-security";
 export const runtime = "nodejs";
 const noStore = { "Cache-Control": "no-store" };
@@ -12,18 +12,19 @@ async function handler(request: Request) {
     const path = new URL(request.url).pathname.replace("/api/auth", "");
     // No credential reset/verification requests without a tested delivery service.
     if (
-      !emailReady() &&
       [
         "/request-password-reset",
         "/reset-password",
         "/send-verification-email",
         "/sign-up/email",
+        "/verify-email",
+        "/sign-in/social",
       ].includes(path)
     )
       return Response.json(
         {
           message:
-            "Email delivery is not configured. Use the public demo or Google when available.",
+            "Email registration and recovery are unavailable. Create a name-only temporary account or use the public demo.",
         },
         { status: 503, headers: noStore },
       );
@@ -40,6 +41,10 @@ async function handler(request: Request) {
           { status: 403, headers: noStore },
         );
     }
+    if (path === "/get-session" && request.method === "GET")
+      return Response.json(await getAuth().api.getSession({ headers: request.headers }), {
+        headers: noStore,
+      });
     const response = await getAuth().handler(request);
     response.headers.set("Cache-Control", "no-store");
     return response;

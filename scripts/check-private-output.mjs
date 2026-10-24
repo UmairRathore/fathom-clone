@@ -21,6 +21,8 @@ for (const file of [".env.local", ".env.auth.local"]) {
         "GOOGLE_CLIENT_SECRET",
         "RESEND_API_KEY",
         "SMTP_PASS",
+        "TEMPORARY_CLEANUP_SECRET",
+        "CRON_SECRET",
         "OPEN_AI_APIKEY",
         "OPENAI_API_KEY",
         "BLOB_READ_WRITE_TOKEN",
@@ -45,7 +47,13 @@ const files = execFileSync("git", ["ls-files", "--cached", "--others", "--exclud
 let count = 0;
 for (const file of files) {
   if (/\.(png|jpg|jpeg|wav|ico|woff2?|ttf)$/.test(file)) continue;
-  const buffer = await readFile(file);
+  let buffer;
+  try {
+    buffer = await readFile(file);
+  } catch (error) {
+    if (error.code === "ENOENT") continue;
+    throw error;
+  }
   const text = new TextDecoder("utf-8", { fatal: true }).decode(buffer);
   if (secrets.some((secret) => secret.length >= 12 && text.includes(secret)))
     throw new Error("Configured secret detected in candidate text file: " + file);

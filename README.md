@@ -16,11 +16,11 @@ The original production deployment remains unchanged. Authentication changes are
 - Eight-speaker, one-hour transcript fixture with 240 segments and virtualized rows. It intentionally has no recording; playback is disabled.
 - Distinct Enhanced and Project Update summaries, concise/full and focus options, timestamp citations and deterministic seeded Ask responses.
 - Editable/assignable/completable action items; categorized highlights; timestamp links; transcript copy/download.
-- Real database-backed login, session cookies, verification-gated email signup, logout, session expiration and private profile-name management.
+- Name-only 24-hour temporary accounts, one-time generated credentials, real credential login/logout, absolute expiry and private profile-name management.
 - Private account workspaces persisted in PostgreSQL; separate demo changes per sign-in session; explicit save status and revision conflict handling.
 - Encrypted immutable 24-hour read-only share snapshots. Creating links requires an owner session; reading links requires no Sounding session. Preview platform protection still applies.
 
-Google OAuth is prepared and visibly disabled until credentials are configured. Real email signup, verification delivery and password-reset email are deliberately disabled until an email provider is configured and tested. Full library flows are tested using a mailbox held only in test-process memory. No fake login, generated recovery email or working Google integration is claimed.
+Create account asks only for a name. Save the generated login ID/password once; the ID stays visible in Your account, while the password cannot be retrieved. No mailbox, OAuth, SMTP or email recovery is used. The public demo remains a separate option. Temporary access ends at the original 24-hour deadline. The separate secret-protected cleanup job is scheduled daily for 00:17 UTC (05:17 Pakistan time); free-tier execution may occur within that hour or be delayed. It uses durable retries and a 15-minute minimum grace period before physical deletion. See [disposable authentication](docs/DISPOSABLE-AUTHENTICATION.md).
 
 ## Quick start
 
@@ -50,7 +50,7 @@ npm run build
 npm start -- --port 3002
 ```
 
-See [authentication architecture and provider setup](docs/AUTHENTICATION.md) for exact configuration, recovery enablement and maintenance instructions.
+See [disposable authentication](docs/DISPOSABLE-AUTHENTICATION.md) for current architecture, expiry, cleanup and maintenance. Older email/OAuth audit documents record superseded proposals.
 
 ## Validation
 
@@ -64,7 +64,7 @@ npm run test:neon
 npm run test:auth:http
 ```
 
-21 automated tests pass, including media timing, transcript lookup, search, state validation, sharing, real credential/session behavior, authorization, isolated demos, CSRF, rate limits and reset-token expiry/reuse.17 additional hosted PostgreSQL checks pass against the dedicated Neon preview database.23 local production HTTP checks pass against Neon.
+The current suite verifies temporary credentials and expiry, cleanup retries, authentication isolation, recording security, clip sharing and the simulated recording journey. Exact release counts are in the disposable-authentication report.
 
 The original unprotected demo smoke script remains in scripts/smoke.ts for that release. The authentication branch uses scripts/auth-smoke.ts. Authorized checks against the protected Vercel preview use:
 
@@ -129,4 +129,4 @@ The project capture hooks remain unchanged. Automatic agent logs were not manual
 
 Free Vercel Hobby; dedicated Neon Free Plan preview. CLI deployments are explicit; GitHub auto-deploy is not connected. Authentication is not promoted to production until provider configuration and complete login verification are finished. Preview environment secrets are configured independently of Production. No paid resources or plan upgrades were used.
 
-Google preview callback: `https://sounding-preview-umair-rathore.vercel.app/api/auth/callback/google`. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Preview only, then test the actual provider flow. Live reset emails remain disabled until delivery verification passes.
+Email registration, OAuth and email recovery have been replaced by name-only temporary registration.

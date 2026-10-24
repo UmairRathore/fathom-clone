@@ -4,5 +4,10 @@ import nextTs from "eslint-config-next/typescript";
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
-  globalIgnores([".next/**", ".vercel/clip-viewer-project/**", "next-env.d.ts"]),
+  globalIgnores([
+    ".next/**",
+    ".vercel/clip-viewer-project/**",
+    ".vercel/cleanup-project/**",
+    "next-env.d.ts",
+  ]),
 ]);
