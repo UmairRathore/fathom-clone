@@ -14,7 +14,7 @@ Implementation screenshots are in docs/screenshots/auth/ at matching 1142×1532 
 
 ## Automated and hosted checks
 
-- 20 tests pass: original 8 domain/media/sharing regressions plus authentication suite and 11 nested authentication cases.
+- 21 tests pass: original 8 domain/media/sharing regressions plus authentication suite and 12 nested authentication cases.
 - Authentication cases cover repeatable migrations, verified signup, password hashing, HttpOnly/SameSite/Secure cookies, invalid credentials, private persistence, mismatched owner/session rejection, stale revisions, invalid data, separate demo visitor sessions, logout cascade, server session expiry, CSRF, reset delivery into a test mailbox, one-use and expired tokens, reset session revocation, generic unknown-address response, constrained return URLs and database rate limits.
 - 17 hosted PostgreSQL checks pass against the dedicated Neon sounding-preview database, including actual private signup/verification/login, profile update, owner isolation, persisted edits and logout revocation. Temporary test accounts are removed by exact IDs scoped to that run.
 - 23 production HTTP checks pass locally against the Neon-backed production build, including one-click and credential demo login, protected redirects, owner API access, persisted changes, demo isolation, mutation blocking, CSRF, stale revision handling, no-store reads, cookie-free shared snapshot and logout.

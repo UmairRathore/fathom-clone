@@ -26,8 +26,18 @@ export function createAuthentication(options: {
       resetPasswordTokenExpiresIn: 900,
       revokeSessionsOnPasswordReset: true,
       sendResetPassword: options.sendMail
-        ? async ({ user, url }) =>
-            options.sendMail!({ to: user.email, subject: "Reset your Sounding password", url })
+        ? async ({ user, url }) => {
+            const credential = await options.pool.query(
+              'SELECT 1 FROM account WHERE "userId"=$1 AND "providerId"=$2 AND password IS NOT NULL',
+              [user.id, "credential"],
+            );
+            if (credential.rowCount)
+              await options.sendMail!({
+                to: user.email,
+                subject: "Reset your Sounding password",
+                url,
+              });
+          }
         : undefined,
     },
     emailVerification: {

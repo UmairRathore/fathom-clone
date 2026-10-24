@@ -67,7 +67,7 @@ Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in ignored local configuration or 
 
 Live delivery is deliberately disabled. Both AUTH_EMAIL_ENABLED and AUTH_EMAIL_DELIVERY_VERIFIED must be true, with a configured RESEND_API_KEY and AUTH_EMAIL_FROM. All four are required. Without them, reset/verification/email-signup APIs fail closed and the UI explains the unavailable state. The library's reset and verification flows are fully tested with an in-memory test mailbox, not a real inbox or logged links.
 
-Before enabling: configure an authorized sender, verify real delivery to the dedicated test account, then enable the flags in Preview only. Reset requests use a generic response for nonexistent accounts; tokens expire after 15 minutes, cannot be reused and revoke existing sessions when consumed. Email-verification links expire after 1 hour. Google accounts recover through Google.
+Before enabling: configure an authorized sender, verify real delivery to the dedicated test account, then enable the flags in Preview only. Reset requests use a generic response for nonexistent accounts; tokens expire after 15 minutes, cannot be reused and revoke existing sessions when consumed. Email-verification links expire after 1 hour. Google accounts recover through Google. Reset delivery checks for an existing credential/password account, and account management shows the reset control only for those accounts.
 
 Never log mail URLs, token values, passwords, request bodies, cookies or database connection strings. Better Auth logging and Next.js incoming-request/browser forwarding logs are disabled. Hosting access-log retention/redaction must also be reviewed before enabling real OAuth/email callback traffic.
 

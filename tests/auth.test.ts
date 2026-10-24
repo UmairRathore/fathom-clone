@@ -322,6 +322,28 @@ test("database-backed authentication and owner isolation", async (t) => {
         /Secure/.test(cookies) && /HttpOnly/.test(cookies) && /SameSite=Lax/i.test(cookies),
       );
     });
+    await t.test("OAuth-only accounts do not receive Sounding password-reset emails", async () => {
+      await pool.query('DELETE FROM "rateLimit"');
+      const userId = "oauth-only-user";
+      await pool.query(
+        'INSERT INTO "user"(id,name,email,"emailVerified","createdAt","updatedAt") VALUES($1,$2,$3,true,now(),now())',
+        [userId, "OAuth-only fixture", "oauth-only@example.test"],
+      );
+      await pool.query(
+        'INSERT INTO account(id,"accountId","providerId","userId","createdAt","updatedAt") VALUES($1,$2,$3,$4,now(),now())',
+        ["oauth-only-account", "fixture-provider-id", "google", userId],
+      );
+      const count = mails.length;
+      const response = await request("/request-password-reset", {
+        email: "oauth-only@example.test",
+        redirectTo: origin + "/reset-password",
+      });
+      assert.ok(response.ok, "Provider-only accounts receive the same generic reset response.");
+      assert.ok(
+        mails.length === count,
+        "No password-reset email is sent for a provider-only account.",
+      );
+    });
   } finally {
     await pool.end();
     await server.stop();

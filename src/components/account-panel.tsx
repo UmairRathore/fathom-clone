@@ -59,9 +59,14 @@ export function AccountPanel({ emailEnabled }: { emailEnabled: boolean }) {
       )}
       {!profile.demo && (
         <p>
-          <Link href="/forgot-password">Reset password</Link>
-          {!emailEnabled &&
-            " · Email delivery is not enabled yet. Google accounts recover through Google."}
+          {profile.canResetPassword ? (
+            <>
+              <Link href="/forgot-password">Reset password</Link>
+              {!emailEnabled && " · Email delivery is not enabled yet."}
+            </>
+          ) : (
+            "Your account uses Google. Recover access through Google."
+          )}
         </p>
       )}
       {message && <p role="status">{message}</p>}

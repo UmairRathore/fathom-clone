@@ -2,7 +2,13 @@
 import { createContext, useContext, useState, useRef, useEffect } from "react";
 import type { SavedMeeting } from "@/lib/workspace-store";
 import type { MeetingState } from "@/lib/state";
-type Profile = { name: string; email: string; demo: boolean; expiresAt: string };
+type Profile = {
+  name: string;
+  email: string;
+  demo: boolean;
+  canResetPassword: boolean;
+  expiresAt: string;
+};
 type Workspace = {
   saved: SavedMeeting[];
   profile: Profile;

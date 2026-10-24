@@ -20,6 +20,12 @@ export const requireWorkspace = cache(async () => {
   const owner = ownerFor(session);
   await ensureWorkspace(getPool(), owner);
   const saved = await listOwnedMeetings(getPool(), owner);
+  const credential = owner.demo
+    ? null
+    : await getPool().query(
+        'SELECT 1 FROM account WHERE "userId"=$1 AND "providerId"=$2 AND password IS NOT NULL',
+        [session.user.id, "credential"],
+      );
   return {
     owner,
     saved,
@@ -27,6 +33,7 @@ export const requireWorkspace = cache(async () => {
       name: session.user.name,
       email: owner.demo ? "Public demo" : session.user.email,
       demo: owner.demo,
+      canResetPassword: !!credential?.rowCount,
       expiresAt: session.session.expiresAt.toISOString(),
     },
   };

@@ -64,7 +64,7 @@ npm run test:neon
 npm run test:auth:http
 ```
 
-20 automated tests pass, including media timing, transcript lookup, search, state validation, sharing, real credential/session behavior, authorization, isolated demos, CSRF, rate limits and reset-token expiry/reuse.17 additional hosted PostgreSQL checks pass against the dedicated Neon preview database.23 local production HTTP checks pass against Neon.
+21 automated tests pass, including media timing, transcript lookup, search, state validation, sharing, real credential/session behavior, authorization, isolated demos, CSRF, rate limits and reset-token expiry/reuse.17 additional hosted PostgreSQL checks pass against the dedicated Neon preview database.23 local production HTTP checks pass against Neon.
 
 The original unprotected demo smoke script remains in scripts/smoke.ts for that release. The authentication branch uses scripts/auth-smoke.ts. Authorized checks against the protected Vercel preview use:
 
