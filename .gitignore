@@ -16,3 +16,5 @@ recon/auth/screenshots/
 .auth-test/
 
 .module-private/
+
+.agent-logs/.locks/
