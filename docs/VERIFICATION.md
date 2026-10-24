@@ -69,3 +69,11 @@
 - External repository push/publication and deployment are the remaining approval/account steps. All source, demo media, tests, screenshots, and setup documentation are prepared for review first.
 
 Final staging check: the secret-review helper initially tried to read the old path of the moved loading file. Updated it to inspect added/copied/modified/renamed staged files and skip deleted paths, then reran successfully. No logs, environment files, private reference images, or credentials were changed or included by this correction.
+
+### Publication continuation
+
+- User approved the GitHub push and Vercel deployment using free resources only.
+- Verified the full previous implementation final response was automatically captured as RESPONSE 3, timestamp 2026-10-24T16:53:54.935Z, model gpt-6.1-sol, valid UTF-8, exactly matching the session record. No entry was inserted or reconstructed.
+- Committed the automatically updated log as c74457e and pushed all implementation commits to the existing main branch. Remote main was verified at that SHA; GitHub repository metadata reports public visibility.
+- Added .vercelignore to keep capture logs, hook scripts, research, documentation screenshots, environment files, and build/dependency artifacts out of the deployment upload. They remain preserved in the repository as appropriate.
+- Vercel CLI 65.2.0 is available through npm exec but reports logged out. Browser sign-in and CLI device authorization are pending user account access; no paid resources, deployment, or account registration were created.

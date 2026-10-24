@@ -1,0 +1,11 @@
+.agent-logs/
+.codex/
+.git/
+recon/
+docs/
+tests/
+.env*
+node_modules/
+.next/
+coverage/
+*.tsbuildinfo

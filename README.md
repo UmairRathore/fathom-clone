@@ -4,7 +4,7 @@
 
 Explore a working meeting library, synchronized speech and transcript, structured summaries, time-linked actions and highlights, genuine search, and read-only sharing. All people and meeting content are fictional.
 
-**Live HTTPS demo:** awaiting deployment approval. No public deployment has been claimed or verified yet.
+**Source:** [UmairRathore/fathom-clone](https://github.com/UmairRathore/fathom-clone) is published publicly. **Live HTTPS demo:** awaiting Vercel account authorization; no public deployment has been claimed or verified yet.
 
 ![Sounding meeting library](docs/screenshots/dashboard.png)
 ![Synchronized meeting transcript](docs/screenshots/transcript.png)
