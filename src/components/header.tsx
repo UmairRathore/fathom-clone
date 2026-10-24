@@ -12,7 +12,8 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { useState } from "react";
-import { meetings } from "@/lib/data";
+import { useWorkspace } from "./workspace-provider";
+import { authClient } from "@/lib/auth-client";
 import { searchMeetings } from "@/lib/domain";
 export function Logo() {
   return (
@@ -22,6 +23,8 @@ export function Logo() {
   );
 }
 export function Header({ detail = false, shared = false }: { detail?: boolean; shared?: boolean }) {
+  const workspace = useWorkspace();
+  const meetings = workspace?.saved.map((entry) => entry.meeting) ?? [];
   const [query, setQuery] = useState("");
   const [menu, setMenu] = useState(false);
   const [info, setInfo] = useState("");
@@ -91,7 +94,7 @@ export function Header({ detail = false, shared = false }: { detail?: boolean; s
               <button
                 onClick={() =>
                   setInfo(
-                    "Demo workspace · All content is fictional. Edits are saved in this browser. No conferencing account is connected.",
+                    "Meeting changes are saved to your workspace. All sample content is fictional. No conferencing account is connected.",
                   )
                 }
               >
@@ -113,15 +116,27 @@ export function Header({ detail = false, shared = false }: { detail?: boolean; s
           <div className="account-wrap">
             <button
               className="avatar user-avatar"
-              aria-label="Open demo user menu"
+              aria-label="Open account menu"
               onClick={() => setMenu(!menu)}
             >
               D
             </button>
             {menu && (
               <div className="account-menu">
-                <strong>Demo workspace</strong>
-                <small>Fictional content · local persistence</small>
+                <strong>{workspace?.profile.demo ? "Demo workspace" : "Private workspace"}</strong>
+                <small>{workspace?.profile.email ?? "Public shared recording"}</small>
+                {!shared && <Link href="/account">Your account</Link>}
+                {!shared && (
+                  <button
+                    onClick={async () => {
+                      const { error } = await authClient.signOut();
+                      if (error) setInfo("Could not sign out. Please try again.");
+                      else window.location.replace("/users/sign_in?reason=signed-out");
+                    }}
+                  >
+                    Sign Out
+                  </button>
+                )}
                 <a
                   href="https://github.com/UmairRathore/fathom-clone"
                   target="_blank"
@@ -162,7 +177,8 @@ export function Header({ detail = false, shared = false }: { detail?: boolean; s
             </button>
           ))}
           <span className="workspace-chip">
-            DEMO WORKSPACE <ChevronDown size={12} />
+            {workspace?.profile.demo ? "DEMO WORKSPACE" : "PRIVATE WORKSPACE"}{" "}
+            <ChevronDown size={12} />
           </span>
         </nav>
       )}

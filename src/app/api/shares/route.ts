@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMeeting } from "@/lib/data";
+import { getAuth } from "@/lib/auth";
+import { getPool } from "@/lib/db";
+import { ownerFor } from "@/lib/workspace";
+import { getOwnedMeeting } from "@/lib/workspace-store";
+import { sameOrigin } from "@/lib/http-security";
 import { restoreState } from "@/lib/state";
 import { sealShare, shareRequestSchema, SHARE_TTL } from "@/lib/sharing";
 export const runtime = "nodejs";
 export async function POST(request: NextRequest) {
+  if (!sameOrigin(request))
+    return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
+  const session = await getAuth().api.getSession({ headers: request.headers });
+  if (!session) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   const origin = request.headers.get("origin");
   if (origin) {
     try {
@@ -30,7 +38,8 @@ export async function POST(request: NextRequest) {
     if (!parsed.success)
       return NextResponse.json({ error: "Invalid meeting snapshot." }, { status: 400 });
     const { meetingId, visibility, state } = parsed.data;
-    const meeting = getMeeting(meetingId);
+    const saved = await getOwnedMeeting(getPool(), ownerFor(session), meetingId);
+    const meeting = saved?.meeting;
     if (!meeting) return NextResponse.json({ error: "Meeting not found." }, { status: 404 });
     const restored = restoreState(JSON.stringify(state), meeting);
     if (JSON.stringify(restored) !== JSON.stringify(state))

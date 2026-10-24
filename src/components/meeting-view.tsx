@@ -67,8 +67,7 @@ export function MeetingView({
   }
   function save(updater: (state: MeetingState) => MeetingState) {
     const durable = update(updater);
-    if (!durable)
-      notify("Browser storage is unavailable. Changes will last for this session only.");
+    if (!durable) notify("Changes could not be saved. Reload to reconnect before editing.");
   }
   function seek(next: number) {
     const clamped = Math.max(0, Math.min(next, meeting.duration));
@@ -94,14 +93,14 @@ export function MeetingView({
         ? current.actions.map((a) => (a.id === item.id ? item : a))
         : [...current.actions, item],
     }));
-    notify("Action item saved");
+    notify("Action item updated");
   }
   function saveHighlight(item: Highlight) {
     save((current) => ({
       ...current,
       highlights: [...current.highlights, item].sort((a, b) => a.time - b.time),
     }));
-    notify("Highlight saved");
+    notify("Highlight added");
   }
   async function copyTranscript() {
     try {
@@ -418,7 +417,7 @@ export function MeetingView({
             <br />
             {shared
               ? "Read-only snapshot · Valid for 24 hours after creation."
-              : "Edits are saved in this browser."}{" "}
+              : "Edits are saved to your workspace."}{" "}
             All people and content are fictional.
           </p>
         </aside>

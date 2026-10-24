@@ -16,7 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { Header } from "./header";
-import { meetings } from "@/lib/data";
+import { useWorkspace } from "./workspace-provider";
 import { formatTime, searchMeetings, type Meeting } from "@/lib/domain";
 export function ParticipantTiles({
   meeting,
@@ -53,6 +53,8 @@ export function ParticipantTiles({
   );
 }
 export function Dashboard() {
+  const workspace = useWorkspace();
+  const meetings = workspace?.saved.map((entry) => entry.meeting) ?? [];
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [question, setQuestion] = useState("");
@@ -91,7 +93,8 @@ export function Dashboard() {
               <p>Your conversations. All in one place.</p>
             </div>
             <span className="demo-label">
-              <span className="status-dot" /> Demo workspace
+              <span className="status-dot" />{" "}
+              {workspace?.profile.demo ? "Demo workspace" : "Private workspace"}
             </span>
           </div>
           <div className="library-tools">
@@ -272,7 +275,7 @@ export function Dashboard() {
                 </div>
               </form>
               <small className="ask-disclaimer">
-                Seeded answers · Your demo data stays in your browser
+                Seeded answers · Changes are saved to your workspace
               </small>
             </div>
           </aside>

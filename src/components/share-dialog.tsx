@@ -61,7 +61,7 @@ export function ShareDialog({
         <span className="avatar">D</span>
         <div>
           <p>Demo workspace owner</p>
-          <small>Fictional workspace · this browser</small>
+          <small>Fictional content · your workspace</small>
         </div>
         <small>Owner</small>
       </div>
@@ -94,8 +94,7 @@ export function ShareDialog({
         <LockKeyhole size={12} />
         <p>
           Links are independent, encrypted snapshots. Restricting future sharing does not revoke an
-          existing snapshot; it expires after 24 hours. The fictional demo workspace itself is
-          public.
+          existing snapshot; it expires after 24 hours. Your workspace requires sign-in.
         </p>
       </div>
       {link && (

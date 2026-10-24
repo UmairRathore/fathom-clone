@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getMeeting } from "@/lib/data";
+import { requireWorkspace } from "@/lib/workspace";
 import { MeetingView } from "@/components/meeting-view";
 export default async function CallPage({
   params,
@@ -10,7 +10,8 @@ export default async function CallPage({
 }) {
   const { id } = await params;
   const query = await searchParams;
-  const meeting = getMeeting(id);
+  const { saved } = await requireWorkspace();
+  const meeting = saved.find((entry) => entry.meeting.id === id)?.meeting;
   if (!meeting) notFound();
   const parsed = Number(query.t);
   const time = Number.isFinite(parsed) ? Math.min(meeting.duration, Math.max(0, parsed)) : 0;
