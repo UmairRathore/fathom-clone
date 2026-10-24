@@ -78,3 +78,23 @@ test("summary formats and customization produce distinct deterministic structure
   assert(answer.text.includes("Alex Rivera"));
   assert(answer.citations.every(c=>c.time>=0&&c.time<m.duration));
 });
+import { sealShare, openShare, SHARE_TTL } from "../src/lib/sharing";
+test("share snapshots authenticate, expire, and reject tampering and wrong keys", () => {
+  const secret="test-only-key-".repeat(4), now=Date.now();
+  const state=defaultState(meetings[0]);
+  const token=sealShare({version:1,meetingId:meetings[0].id,visibility:"unlisted",issuedAt:now,expiresAt:now+SHARE_TTL,state},secret);
+  const restored=openShare(token,secret,now);
+  assert.equal(restored?.meetingId,"atlas-launch");
+  assert.deepEqual(restored?.state?.actions,state.actions);
+  assert.equal(openShare(token,secret,now+SHARE_TTL+1),null);
+  assert.equal(openShare(token,"wrong-key".repeat(8),now),null);
+  const at=40, tampered=token.slice(0,at)+(token[at]==="A"?"B":"A")+token.slice(at+1);
+  assert.equal(openShare(tampered,secret,now),null);
+  assert.equal(openShare("not-a-share-token",secret,now),null);
+});
+test("restricted snapshots contain no meeting state, including on decryption", () => {
+  const secret="test-only-restricted-key-".repeat(3), now=Date.now();
+  const token=sealShare({version:1,meetingId:meetings[0].id,visibility:"restricted",issuedAt:now,expiresAt:now+SHARE_TTL,state:defaultState(meetings[0])},secret);
+  assert.equal(openShare(token,secret,now)?.visibility,"restricted");
+  assert.equal(openShare(token,secret,now)?.state,undefined);
+});

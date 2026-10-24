@@ -34,3 +34,15 @@
 - All summary/Ask behavior is deterministic and disclosed. English/Auto are available; no translation is claimed. Free-form customization notes are retained but not interpreted as AI instructions.
 - Added tests for invalid persisted data, foreign-key/timestamp validation, distinct summary templates, concise/action-focused output, and grounded answer citations.
 - Existing completed log exchanges remain untouched; this development turn is still in progress.
+
+## Milestone 4 — Search and sharing
+
+- Global search genuinely indexes title, participants, summary, and transcript. Browser query `amber lighthouse` returned the eight-speaker meeting; transcript search returned the 30 late discussion segments. Title-only matches open the summary instead of an empty transcript search.
+- Share Recording matches the observed modal hierarchy: title, people with access, access selector, Copy Link. No invitations or email transmission are simulated.
+- Browser created an unlisted link and opened it in a separate tab. It preserved the custom checked action and Feedback highlight from the snapshot. Guest checkboxes were disabled; action/highlight creation controls were absent.
+- Browser restricted access selection disabled Copy Link. Existing links are explicitly immutable snapshots valid for 24 hours; there is no immediate revocation or invitation system. The demo workspace itself is public. This is an independently designed approximation, not verified source behavior.
+- Snapshots are compressed, AES-256-GCM authenticated/encrypted, validated, time-limited, and require a stable server SHARE_SECRET. Restricted payloads omit state; invalid/expired/tampered links fail closed. No in-memory server database or writable server filesystem is required at runtime.
+- Local random SHARE_SECRET was generated into ignored .env.local without printing its value. Deployment must supply its own stable secret.
+- Fixed origin comparison from internal Next.js URL to request Host after browser share creation was rejected. No origin checks were disabled.
+- Added tests for authenticated decryption, expiry, tampering, wrong keys, and restricted snapshots omitting state.
+- The same completed exchanges remain in the automatic session log; no historical entries were altered.
