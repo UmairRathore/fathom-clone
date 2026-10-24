@@ -105,7 +105,7 @@ Run `npx tsx scripts/journey-smoke.ts` against the local app on port 3002 for cl
 
 One authorized 4:27.833 MP4 completed the genuine browser upload → transcription → analysis → persistent meeting → original playback journey: 56 segments, four evidence-linked actions, one highlight. Exactly two billable requests ran. Final token-based estimated cost: US$0.0781; conservative ledger reservations: US$0.40 of the US$1 authorization. Further paid processing is disabled pending new authorization.
 
-See [Module 1 architecture, cost reconciliation, evidence and limitations](docs/REAL-AI-PROCESSING.md). Credentials, recordings, QA account data and private output stay outside Git in ignored configuration and private storage.
+See [Module 1 architecture, cost reconciliation, evidence and limitations](docs/REAL-AI-PROCESSING.md), and [the transcript quality diagnosis and verified readability fixes](docs/TRANSCRIPT-QUALITY-REVIEW.md). Credentials, recordings, QA account data and private output stay outside Git in ignored configuration and private storage.
 
 ## Fixtures and limitations
 

@@ -39,4 +39,11 @@ The supplied Fathom reference has approximately 555 normalized words including h
 - No transcript/analysis/database content was rewritten. Source media is unchanged. No paid API call, model switch, regeneration or retry occurred; the ledger remains two successful operations at estimated US$0.07806735 total, below the existing US$1 authorization. Paid processing stays disabled.
 - Automatic capture and historical entries remain untouched. The new automatically captured user prompt contains the user-pasted transcript; that local log append is deliberately excluded from public source commits. No private recording frame or transcript is included in committed screenshots.
 
-Release verification is recorded after updating the protected preview. Original public production and main are not changed.
+## Release verification
+
+- Implementation: `0cc6d40` on `codex/authentication-preview`.
+- Protected deployment: `5rm7GQs3nBoGKyNWx4jNGjsszXBf`, served at [the existing Sounding preview](https://sounding-preview-umair-rathore.vercel.app/upload). Vercel Authentication remains enabled.
+- Deployed browser verification: all 56 source segments in 17 paragraphs, exact rendered-text equality with the saved transcript, one preserved highlight, precise source seeking and no media error. Both local and preview tabs were left at the first source phrase, 5.172 seconds.
+- Seven deployed release/authentication/original-production checks passed. The owner readiness check confirms paid processing is disabled and the job remains Ready. The ledger still contains only the original two successful requests.
+- Original public production remains accessible and was not promoted. Main and historical logs are unchanged. A documentation follow-up commit records this release verification; documentation changes do not require another deployment.
+- [Privacy-safe visual proof using fictional meeting content](screenshots/module1/transcript-readable-fixture.jpg). The private recording was tested through metadata and exact-content comparisons without publishing its speech or video frames.
