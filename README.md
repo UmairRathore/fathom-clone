@@ -4,7 +4,7 @@
 
 Explore a working meeting library, synchronized speech and transcript, structured summaries, time-linked actions and highlights, genuine search, and read-only sharing. All people and meeting content are fictional.
 
-**Source:** [UmairRathore/fathom-clone](https://github.com/UmairRathore/fathom-clone) is published publicly. **Live HTTPS demo:** awaiting Vercel account authorization; no public deployment has been claimed or verified yet.
+**Live demo:** [fathom-clone-three.vercel.app](https://fathom-clone-three.vercel.app) · **Source:** [UmairRathore/fathom-clone](https://github.com/UmairRathore/fathom-clone). Deployed to the Vercel Hobby plan and verified over public HTTPS without account credentials.
 
 ![Sounding meeting library](docs/screenshots/dashboard.png)
 ![Synchronized meeting transcript](docs/screenshots/transcript.png)
@@ -104,7 +104,9 @@ Actual browser checks and corrections are recorded in [docs/VERIFICATION.md](doc
 4. Deploy. No database, upload bucket, or writable server filesystem is required.
 5. Open `/home` in a fresh browser, play the launch review, create a new share link, and open it without account credentials. Localhost share URLs will not work on the deployed host; generate fresh links there.
 6. Run `npm run test:smoke -- https://YOUR-DEPLOYMENT` for public endpoint checks. Without the local server’s matching secret, signing-specific negative tests are skipped; unit tests still cover them.
-7. Replace the pending live-demo notice with the verified HTTPS URL.
+7. Update the live-demo link after verifying your own deployment.
+
+This demo was deployed with the Vercel CLI under `umair-rathore/fathom-clone`. Automatic GitHub-to-Vercel deployments are not connected; pushing to GitHub alone does not redeploy the app. From a linked checkout, publish future approved changes with `vercel deploy --prod --scope umair-rathore --project fathom-clone`.
 
 The repository includes Vercel configuration and `.env.example`. `.env.local`, build output, dependencies, and private reconnaissance images are ignored. Share creation returns an actionable error if the deployment secret is missing.
 
