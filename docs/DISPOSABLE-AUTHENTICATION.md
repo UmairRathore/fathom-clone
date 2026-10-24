@@ -33,3 +33,15 @@ Public recovery pages state that recovery is unavailable; they do not send email
 - TypeScript, ESLint and production build passed. Final release status and deployed checks are recorded below after deployment.
 
 Tests that force expiry/deletion use isolated fixtures only. No real permanent account is selected for cleanup. Credentials are never printed by the smoke scripts. Automatic historical agent logs are not rewritten or included in this release commit.
+
+## Deployed release evidence
+
+- Implementation commit: 06ceaf9; credential-control layout follow-up: 1e833c7. Both are pushed to codex/authentication-preview.
+- Protected application preview: https://sounding-preview-umair-rathore.vercel.app (immutable deployment fathom-clone-6nh2vmz2h-umair-rathore.vercel.app; ID 3ao76RtTLuWqPCjFVkaS9o6pdQC6). Vercel Authentication remains enabled.
+- The deployed account API passed all 22 disposable-account HTTP checks. The final layout deployment passed seven release checks covering protected redirects, instant demo, Secure/HttpOnly cookies, account display, logout revocation and original public-demo availability.
+- Deployed browser checks confirmed name-only creation, masked one-time welcome credentials, immediate private workspace, profile ID and precise deadline, persistent session after refresh, logout and public-demo entry. Browser generated-password return was not completed because credential reads are redacted; real HTTP return checks passed. Copy-password/download were not exercised end-to-end.
+- Cleanup deployment: sounding-preview-cleanup-2a6gne2gk-umair-rathore.vercel.app (ID 2Wg487u8xD2G4EvhfubM4ERyg3CA). Project metadata confirms daily cron enabled. Secret authorization and manual invocation passed. The next scheduled invocation has not yet been observed; no wall-clock 24-hour wait was used. Expiry boundaries were tested with disposable fixtures.
+- Production dependency audit: zero vulnerabilities. Configured-secret checks passed against five automatic logs, 445 reachable Git blobs and 40 client assets. This checks configured secrets, not every possible historical credential.
+- Historical log prefix and all 16 appended capture-frame checksums remain valid UTF-8; four other historical logs and capture implementation are unchanged. The current private transcript log remains outside the release commits.
+- The original public production deployment ID A6s6ZwNCC2QE622thEYELCSaYY37 is unchanged. Main remains 7cf99f9b686f76f77465ca4dbe2fff610b8cfc51. The existing public clip viewer was not deployed.
+- Additional paid API expenditure: USD 0. No billing or paid resources were enabled.
