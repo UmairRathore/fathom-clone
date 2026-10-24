@@ -20,7 +20,7 @@ export function activeSegment(segments: Segment[], time: number): number {
   let low = 0, high = segments.length - 1;
   while (low <= high) {
     const middle = (low + high) >>> 1;
-    if (segments[middle].start <= time) low = middle + 1;
+    if (segments[middle].start <= time + 0.001) low = middle + 1;
     else high = middle - 1;
   }
   return Math.max(0, high);
@@ -33,3 +33,4 @@ export function searchMeetings(meetings: Meeting[], query: string) {
     return words.every(w => haystack.includes(w));
   });
 }
+
