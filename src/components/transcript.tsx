@@ -38,7 +38,7 @@ export function Transcript({
   seek: (time: number) => void;
   highlights: Highlight[];
   initialQuery: string;
-  onCreate: (segment: Segment, kind: "action" | "highlight") => void;
+  onCreate: (segment: Segment, kind: "action" | "highlight" | "clip") => void;
   copy: () => void;
   readonly?: boolean;
 }) {
@@ -333,6 +333,12 @@ export function Transcript({
                   {!readonly && (
                     <div className="segment-tools">
                       <span>Selected {formatTime(selected.start)}</span>
+                      <button
+                        aria-label={`Create clip at ${formatTime(selected.start)}`}
+                        onClick={() => onCreate(selected, "clip")}
+                      >
+                        Create clip
+                      </button>
                       <button
                         aria-label={`Add action item at ${formatTime(selected.start)}`}
                         onClick={() => onCreate(selected, "action")}

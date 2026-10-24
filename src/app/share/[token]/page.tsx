@@ -1,3 +1,5 @@
+import { publicClip } from "@/lib/clip-shares";
+import { getPool } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { ClipViewer } from "@/components/clip-viewer";
 import { validClip, clipSegments } from "@/lib/journey";
@@ -8,7 +10,7 @@ import { restoreState } from "@/lib/state";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const metadata = {
-  title: "Shared meeting · Sounding",
+  title: "Shared meeting Â· Sounding",
   robots: { index: false, follow: false },
   referrer: "no-referrer",
 };
@@ -20,6 +22,17 @@ export default async function SharedPage({
   searchParams: Promise<{ t?: string }>;
 }) {
   const { token } = await params;
+  if (token.startsWith("v2.")) {
+    const grant = await publicClip(getPool(), token);
+    if (!grant) notFound();
+    return (
+      <ClipViewer
+        {...grant.view}
+        mediaUrl={grant.media_key ? `/api/clips/${token}/media` : undefined}
+        statusUrl={`/api/clips/${token}`}
+      />
+    );
+  }
   const secret = process.env.SHARE_SECRET;
   const payload = secret ? openShare(token, secret) : null;
   if (!payload || payload.visibility === "restricted" || !payload.state) notFound();

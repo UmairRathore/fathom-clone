@@ -98,13 +98,16 @@ try {
     Math.abs(wav.readUInt32LE(40) / wav.readUInt32LE(28) - 16) < 0.001,
     "guest audio is sixteen seconds rather than full recording",
   );
-  const restricted = await (
-    await send("/api/shares", { ...body, visibility: "restricted" }, session)
-  ).json();
-  check((await send(restricted.path)).status === 404, "restricted clip viewer fails closed");
+  const restricted = await send("/api/shares", { ...body, visibility: "restricted" }, session);
+  check(restricted.status === 400, "restricted clip request cannot mint a public capability");
   check(
-    (await send("/api/clips/" + restricted.path.split("/").at(-1) + "/media")).status === 404,
-    "restricted clip media fails closed",
+    (await send("/api/shares", { meetingId: "atlas-launch", clipId: clip.id }, session, "DELETE"))
+      .ok,
+    "owner can revoke demo clip",
+  );
+  check(
+    (await send(share.path)).status === 404 && (await send(mediaPath)).status === 404,
+    "revoked demo page and media fail closed",
   );
   check(
     (await send("/api/clips/invalid/media")).status === 404,

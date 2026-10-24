@@ -13,6 +13,7 @@ import {
   ListTodo,
   Download,
 } from "lucide-react";
+import { ClipLibrary } from "./clip-library";
 import { ClipEditor } from "./clip-editor";
 import type { Clip } from "@/lib/journey";
 import { Header } from "./header";
@@ -52,14 +53,19 @@ export function MeetingView({
   const [editor, setEditor] = useState<EditorState | null>(null);
   const [toast, setToast] = useState("");
   const [sharing, setSharing] = useState(false);
-  const [clipRange, setClipRange] = useState<{ start: number; end: number } | null>(null);
+  const [clipRange, setClipRange] = useState<{
+    start: number;
+    end: number;
+    existing?: Clip;
+  } | null>(null);
+  const [shareVersion, setShareVersion] = useState(0);
   const [shareClip, setShareClip] = useState<Clip | undefined>(undefined);
   const [viewerPreferences, setViewerPreferences] = useState<SummaryPreferences>(
     initialPreferences ?? { template: "Enhanced", length: "standard", focus: "all", guidance: "" },
   );
   const [more, setMore] = useState(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { state, update } = useMeetingState(meeting, shared);
+  const { state, update, whenSaved } = useMeetingState(meeting, shared);
   useEffect(
     () => () => {
       if (toastTimer.current) clearTimeout(toastTimer.current);
@@ -85,7 +91,11 @@ export function MeetingView({
     setTab("transcript");
     setShowSidebar(false);
   }
-  function onCreate(segment: Segment, kind: "action" | "highlight") {
+  function onCreate(segment: Segment, kind: "action" | "highlight" | "clip") {
+    if (kind === "clip") {
+      setClipRange({ start: segment.start, end: segment.end });
+      return;
+    }
     setEditor(
       kind === "action"
         ? { kind, time: segment.start }
@@ -155,6 +165,7 @@ export function MeetingView({
         <section className="call-main">
           <MediaPlayer
             meeting={meeting}
+            suspended={!!clipRange}
             time={time}
             onTime={setTime}
             seekRequest={seekRequest}
@@ -261,7 +272,7 @@ export function MeetingView({
               disabled={meeting.source === "upload"}
               title={
                 meeting.source === "upload"
-                  ? "Private uploads are owner-only in Module 1"
+                  ? "Create a clip to share an excerpt of this private recording"
                   : undefined
               }
               onClick={() => {
@@ -309,43 +320,34 @@ export function MeetingView({
               {showSidebar ? "Hide" : "Show"} actions & annotations
             </button>
           </div>
-          {!shared && meeting.source !== "upload" && (
-            <section className="sidebar-section">
-              <div className="section-label">
-                <h2>CLIPS</h2>
-                <button
-                  aria-label="Create clip"
-                  disabled={(state.clips?.length ?? 0) >= 100}
-                  onClick={() =>
-                    setClipRange({
-                      start: Math.min(time, meeting.duration - 1),
-                      end: Math.min(meeting.duration, time + 30),
-                    })
-                  }
-                >
-                  <Plus size={14} />
-                </button>
-              </div>
-              {!state.clips?.length && (
-                <p>Save a moment, preview it, and share it outside your workspace.</p>
-              )}
-              {state.clips?.map((clip) => (
-                <div className="saved-clip" key={clip.id}>
-                  <button onClick={() => jump(clip.start)}>
-                    {clip.title} · {formatTime(clip.start)}–{formatTime(clip.end)}
-                  </button>
-                  <button
-                    className="secondary-button"
-                    onClick={() => {
-                      setShareClip(clip);
-                      setSharing(true);
-                    }}
-                  >
-                    Share clip
-                  </button>
-                </div>
-              ))}
-            </section>
+          {!shared && (
+            <ClipLibrary
+              meeting={meeting}
+              clips={state.clips ?? []}
+              version={shareVersion}
+              create={() =>
+                setClipRange({
+                  start: Math.min(time, meeting.duration - 0.1),
+                  end: Math.min(meeting.duration, time + 30),
+                })
+              }
+              edit={(clip) => setClipRange({ start: clip.start, end: clip.end, existing: clip })}
+              share={(clip) => {
+                setShareClip(clip);
+                setSharing(true);
+              }}
+              remove={async (clip) => {
+                if (
+                  !update((current) => ({
+                    ...current,
+                    clips: (current.clips ?? []).filter((c) => c.id !== clip.id),
+                  })) ||
+                  !(await whenSaved())
+                )
+                  throw new Error();
+              }}
+              notify={notify}
+            />
           )}
           <section className="sidebar-section">
             <div className="section-label">
@@ -491,7 +493,7 @@ export function MeetingView({
                         </span>
                       </span>
                     </button>
-                    {!shared && meeting.source !== "upload" && (
+                    {!shared && (
                       <button
                         className="annotation-link"
                         aria-label={`Create clip from ${h.title}`}
@@ -549,7 +551,10 @@ export function MeetingView({
           clip={shareClip}
           state={state}
           changeVisibility={(value) => save((current) => ({ ...current, sharing: value }))}
-          close={() => setSharing(false)}
+          close={() => {
+            setSharing(false);
+            setShareVersion((v) => v + 1);
+          }}
         />
       )}
       {clipRange && !shared && (
@@ -557,8 +562,15 @@ export function MeetingView({
           meeting={meeting}
           {...clipRange}
           close={() => setClipRange(null)}
-          save={(clip) => {
-            save((current) => ({ ...current, clips: [...(current.clips ?? []), clip] }));
+          save={async (clip) => {
+            if (
+              !update((current) => ({
+                ...current,
+                clips: [...(current.clips ?? []).filter((c) => c.id !== clip.id), clip],
+              })) ||
+              !(await whenSaved())
+            )
+              throw new Error();
             setClipRange(null);
             notify("Clip saved. Use Share clip to create an external link.");
           }}

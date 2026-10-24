@@ -93,7 +93,7 @@ Authorization is checked in server layouts/pages and each private API. Database 
 
 Open http://localhost:3002/capture after choosing Try the public demo. Connect the sample calendar, admit the stub notetaker, replay either scenario, highlight a moment, finish processing, and open its insights. The replay supports 1×/30×/120×; pause and highlight actions save checkpoints. The explicit skip action uses the complete fixture.
 
-On a meeting, create a clip from the playhead or an annotation, set its title/start/end, preview audio, and save. Share clip creates a 24-hour read-only viewer with selected transcript utterances and standalone extracted WAV audio when available. Whole-meeting sharing remains available. Download action items exports current owners, completion states and timestamps. Transcript tools include speaker filters, m:ss jumps and previous/next search matches.
+On a meeting, create a clip from the playhead or an annotation, set its title/start/end, preview audio, and save. Share clip creates a 24-hour read-only viewer with selected transcript utterances and standalone extracted WAV audio when available. Whole-meeting sharing remains available for fictional demo meetings only. Download action items exports current owners, completion states and timestamps. Transcript tools include speaker filters, m:ss jumps and previous/next search matches.
 
 These features are included in the development preview release; the original production deployment remains unchanged. Calendar, notetaker, recording lifecycle and insight extraction are explicitly simulated. The hour-long fixture remains transcript-only. See [the verified assessment matrix and evidence](docs/ASSESSMENT-GAP-AUDIT.md).
 
@@ -111,9 +111,13 @@ See [Module 1 architecture, cost reconciliation, evidence and limitations](docs/
 
 Atlas launch review has four scripted speakers, eight transcript turns and self-generated Microsoft Zira speech. Timing comes from the actual PCM media boundaries. The participant tiles are illustrative, not video or real diarization. The eight-speaker planning meeting has 240 synthetic segments across 60 minutes. Two additional transcript-only fixtures demonstrate design and customer discussions.
 
-Synthetic-meeting summaries and Ask are deterministic seeded behavior. Uploaded recordings use the cached real AI analysis; Ask remains a labeled keyword lookup. Guidance notes persist but are not interpreted by a model. English/Auto retains English source text. No live conferencing bot, real calendar/CRM integration, billing, invitations are connected. The calendar/notetaker journey is a labeled stub; clip creation and fixture-audio export work locally.
+Synthetic-meeting summaries and Ask are deterministic seeded behavior. Uploaded recordings use the cached real AI analysis; Ask remains a labeled keyword lookup. Guidance notes persist but are not interpreted by a model. English/Auto retains English source text. No live conferencing bot, real calendar/CRM integration, billing, invitations are connected. The calendar/notetaker journey is a labeled stub; clip creation and secure audio-only export work for both uploaded recordings and fixtures.
 
-Shares are snapshots, not invitations. Previously created links remain usable until their 24-hour expiry even if future sharing is restricted. Keep the same SHARE_SECRET when maintaining an existing deployment's links. Existing production environment variables and deployment were not changed.
+New clip links are revocable, expire after 24 hours, and are invalidated when the saved clip changes or is deleted. Legacy v1 fictional snapshots remain usable until their original expiry. Keep the same SHARE_SECRET when maintaining an existing deployment's links. Existing production environment variables and deployment were not changed.
+
+## Module 2: meeting clips and external sharing
+
+Uploaded meetings now support the existing clip editor, precise extracted-audio previews, saved Neon clips, transcript/highlight selection and revocable guest links. The separate free clip-only viewer permits anonymous access while the main preview stays protected. Original video and unshared transcript are never delivered to recipients. See [the feature audit, working journey, security controls, verified limitations and proof](docs/MODULE-2-CLIPS.md).
 
 ## Research and capture integrity
 

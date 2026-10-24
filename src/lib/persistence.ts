@@ -7,6 +7,7 @@ export function useMeetingState(meeting: Meeting, readonly = false) {
   const saved = !readonly ? workspace?.saved.find((x) => x.meeting.id === meeting.id) : undefined;
   return {
     state: saved?.state ?? defaultState(meeting),
+    whenSaved: async () => (workspace ? workspace.whenSaved(meeting.id) : false),
     update: (updater: Parameters<NonNullable<typeof workspace>["update"]>[1]) =>
       !readonly && workspace ? workspace.update(meeting.id, updater) : false,
   };

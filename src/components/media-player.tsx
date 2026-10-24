@@ -10,12 +10,14 @@ export function MediaPlayer({
   onTime,
   seekRequest,
   highlights,
+  suspended = false,
 }: {
   meeting: Meeting;
   time: number;
   onTime: (time: number) => void;
   seekRequest: SeekRequest;
   highlights: Highlight[];
+  suspended?: boolean;
 }) {
   const audio = useRef<HTMLMediaElement>(null);
   const surface = useRef<HTMLDivElement>(null);
@@ -33,6 +35,9 @@ export function MediaPlayer({
     if (audio.current && (ready || audio.current.readyState >= 1))
       audio.current.currentTime = Math.min(seekRequest.time, meeting.duration);
   }, [seekRequest, ready, meeting.duration]);
+  useEffect(() => {
+    if (suspended) audio.current?.pause();
+  }, [suspended]);
   async function togglePlayback() {
     const element = audio.current;
     if (!element) return;

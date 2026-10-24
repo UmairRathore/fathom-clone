@@ -5,7 +5,7 @@ import type { Clip } from "@/lib/journey";
 import { Modal } from "./modal";
 import type { Meeting } from "@/lib/domain";
 import type { MeetingState } from "@/lib/state";
-export function ShareDialog({
+function RecordingShareDialog({
   meeting,
   clip,
   state,
@@ -146,6 +146,144 @@ export function ShareDialog({
           {busy ? "Creating link…" : copied ? "Link Copied" : "Copy Link"}
         </button>
       </div>
+    </Modal>
+  );
+}
+
+export function ShareDialog(props: Parameters<typeof RecordingShareDialog>[0]) {
+  return props.clip ? (
+    <ClipShareDialog
+      meeting={props.meeting}
+      clip={props.clip}
+      state={props.state}
+      close={props.close}
+    />
+  ) : (
+    <RecordingShareDialog {...props} />
+  );
+}
+function ClipShareDialog({
+  meeting,
+  clip,
+  state,
+  close,
+}: {
+  meeting: Meeting;
+  clip: Clip;
+  state: MeetingState;
+  close: () => void;
+}) {
+  const [confirmed, setConfirmed] = useState(meeting.source !== "upload"),
+    [busy, setBusy] = useState(false),
+    [link, setLink] = useState(""),
+    [error, setError] = useState(""),
+    [copied, setCopied] = useState(false);
+  const excerpts = meeting.segments.filter((s) => s.start >= clip.start && s.end <= clip.end);
+  async function create() {
+    setBusy(true);
+    setError("");
+    try {
+      let value = link;
+      if (!value) {
+        const response = await fetch("/api/shares", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            meetingId: meeting.id,
+            clip,
+            visibility: "unlisted",
+            state,
+            confirmPublic: confirmed,
+          }),
+          signal: AbortSignal.timeout(60000),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error ?? "Could not prepare this clip.");
+        value = data.url ?? window.location.origin + data.path;
+        setLink(value);
+      }
+      try {
+        await navigator.clipboard.writeText(value);
+        setCopied(true);
+      } catch {
+        setError("Link created. Select and copy it below; clipboard access is unavailable.");
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not prepare the clip. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <Modal title="Share clip" close={close}>
+      <p className="modal-description">
+        Share only &quot;{clip.title}&quot; - {(clip.end - clip.start).toFixed(3)} seconds.{" "}
+        {meeting.mediaUrl
+          ? "Recipients receive an extracted audio file, not the original video or full recording."
+          : "This is a transcript-only clip."}
+      </p>
+      <p>
+        Anyone with the link can open it without a Sounding account. Links expire after 24 hours and
+        can be revoked from this meeting&apos;s Clips section.
+      </p>
+      <details>
+        <summary>Transcript the recipient will see ({excerpts.length} utterances)</summary>
+        {excerpts.map((s) => (
+          <p key={s.id}>{s.text}</p>
+        ))}
+        {!excerpts.length && (
+          <p>No complete utterance fits inside this range. Audio remains available.</p>
+        )}
+        <small>Boundary utterances are omitted because word timestamps are unavailable.</small>
+      </details>
+      {meeting.source === "upload" && (
+        <label className="clip-consent">
+          <input
+            type="checkbox"
+            checked={confirmed}
+            disabled={busy || !!link}
+            onChange={(e) => setConfirmed(e.target.checked)}
+          />
+          I authorize sharing this selected audio excerpt and shown transcript with anyone holding
+          the link.
+        </label>
+      )}
+      {link && (
+        <>
+          <input
+            aria-label="Shareable clip link"
+            readOnly
+            value={link}
+            onFocus={(e) => e.currentTarget.select()}
+          />
+          <a href={link} target="_blank" rel="noreferrer">
+            Open shared clip
+          </a>
+        </>
+      )}
+      {error && (
+        <p role="alert" className="form-error">
+          {error}
+        </p>
+      )}
+      {busy && <p role="status">Preparing a secure excerpt...</p>}
+      <div className="modal-footer">
+        <button className="secondary-button" onClick={close}>
+          Done
+        </button>
+        <button className="primary-button" disabled={busy || !confirmed} onClick={create}>
+          {busy
+            ? "Preparing clip..."
+            : copied
+              ? "Link copied"
+              : link
+                ? "Copy link"
+                : "Create public clip link"}
+        </button>
+      </div>
+      <small>
+        Revocation blocks new access; audio already downloaded or buffered cannot be recalled.
+      </small>
     </Modal>
   );
 }

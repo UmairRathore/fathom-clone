@@ -2687,3 +2687,37 @@ button:hover {
   margin: 4px;
   text-decoration: underline;
 }
+
+.clip-library-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.saved-clip {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 12px;
+  border: 1px solid #e5e8ef;
+  border-radius: 8px;
+}
+.saved-clip small,
+.clip-link-status {
+  font-size: 11px;
+  color: #66748b;
+}
+.clip-library-actions button {
+  font-size: 11px;
+  text-decoration: underline;
+}
+.clip-consent {
+  display: flex;
+  gap: 12px;
+  padding: 14px 0;
+}
+.clip-consent input {
+  width: auto;
+}
+.modal audio {
+  width: 100%;
+}

@@ -6,6 +6,7 @@ import { clipSchema } from "./journey";
 export const shareRequestSchema = z.object({
   meetingId: z.string().min(1).max(100),
   clip: clipSchema.optional(),
+  confirmPublic: z.boolean().optional(),
   visibility: z.enum(["unlisted", "restricted"]),
   state: stateSchema,
 });

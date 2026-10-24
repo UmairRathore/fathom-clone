@@ -13,6 +13,7 @@ type Workspace = {
   saved: SavedMeeting[];
   profile: Profile;
   pending: number;
+  whenSaved: (id: string) => Promise<boolean>;
   error: string;
   update: (id: string, updater: (state: MeetingState) => MeetingState) => boolean;
 };
@@ -98,7 +99,19 @@ export function WorkspaceProvider({
     return true;
   }
   return (
-    <Context.Provider value={{ saved, profile, pending, error, update }}>
+    <Context.Provider
+      value={{
+        saved,
+        profile,
+        pending,
+        error,
+        update,
+        whenSaved: async (id) => {
+          await queues.current.get(id);
+          return !failed.current;
+        },
+      }}
+    >
       {error && (
         <div className="workspace-save-error" role="alert">
           {error} <button onClick={() => window.location.reload()}>Reload</button>

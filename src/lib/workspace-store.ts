@@ -66,7 +66,7 @@ export async function listOwnedMeetings(pool: Pool, owner: Owner): Promise<Saved
   return rows;
 }
 export async function getOwnedMeeting(
-  pool: Pool,
+  pool: Pick<Pool, "query">,
   owner: Owner,
   id: string,
 ): Promise<SavedMeeting | null> {
@@ -99,10 +99,17 @@ export async function saveOwnedMeeting(
   const state = validateMeetingState(value, saved.meeting);
   if (!state) return "invalid" as const;
   const result = await pool.query(
-    `UPDATE sounding_meeting m SET state=$1::jsonb,revision=revision+1,updated_at=now()
+    `WITH updated AS (UPDATE sounding_meeting m SET state=$1::jsonb,revision=revision+1,updated_at=now()
     FROM sounding_workspace w WHERE w.id=m.workspace_id AND w.id=$2 AND w.owner_id=$3
     AND (w.session_id IS NULL OR w.session_id=$4)
-    AND EXISTS (SELECT 1 FROM session s WHERE s.id=$4 AND s."userId"=w.owner_id AND s."expiresAt">now()) AND m.id=$5 AND m.revision=$6 RETURNING m.revision`,
+    AND EXISTS (SELECT 1 FROM session s WHERE s.id=$4 AND s."userId"=w.owner_id AND s."expiresAt">now()) AND m.id=$5 AND m.revision=$6 RETURNING m.revision), revoked AS (
+      UPDATE sounding_clip_share g SET revoked_at=now()
+      WHERE g.workspace_id=$2 AND g.meeting_id=$5 AND g.revoked_at IS NULL
+      AND EXISTS(SELECT 1 FROM updated)
+      AND NOT EXISTS(SELECT 1 FROM jsonb_array_elements(coalesce(($1::jsonb)->'clips','[]'::jsonb)) c
+        WHERE c->>'id'=g.clip_id AND c->'start'=g.clip->'start' AND c->'end'=g.clip->'end' AND c->'title'=g.clip->'title')
+      RETURNING id
+    ) SELECT revision FROM updated`,
     [JSON.stringify(state), workspaceKey(owner), owner.userId, owner.sessionId, id, revision],
   );
   return result.rows[0]?.revision ?? ("conflict" as const);

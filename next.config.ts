@@ -1,7 +1,15 @@
 import type { NextConfig } from "next";
 const config: NextConfig = {
   devIndicators: false,
-  outputFileTracingIncludes: { "/api/clips/*/media": ["./public/media/atlas-review.wav"] },
+  serverExternalPackages: ["ffmpeg-static"],
+  outputFileTracingIncludes: {
+    "/api/clips/*/media": ["./public/media/atlas-review.wav"],
+    "/api/meetings/*/clips/preview": [
+      "./public/media/atlas-review.wav",
+      "./node_modules/ffmpeg-static/ffmpeg",
+    ],
+    "/api/shares": ["./public/media/atlas-review.wav", "./node_modules/ffmpeg-static/ffmpeg"],
+  },
   reactStrictMode: true,
   poweredByHeader: false,
   logging: {
