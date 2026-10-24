@@ -29,3 +29,17 @@ Atlas highlight clicks seek to the real timestamp in its synthesized fixture aud
 - TypeScript, lint, production build, formatting, and configured-secret/UTF-8 scanning pass. The production-dependency audit reports zero vulnerabilities.
 
 Protected-preview release evidence and exact commit are recorded after deployment verification. Public production and the separate public clip viewer are not deployment targets for this module. Historical logs and hook configuration are excluded from commits; current prompt/previous final capture and frame checksums were verified read-only.
+
+## Protected-preview release verification
+
+Application commit: `9ab011f` on `codex/authentication-preview`, pushed together with Module 2 validation fix `d89c898`.
+
+The existing protected preview now points to `fathom-clone-d5smu5cvx-umair-rathore.vercel.app` (deployment `3A6qkKCBTevVr1T7QC3SsBiBsw6h`). Vercel Authentication remains enabled. No public-production or public-clip-viewer deployment was performed.
+
+The deployed browser flow passed: connect/admit/start → all four categories plus a note → pause → refresh (all four retained) → early finish → insights → meeting. A manual annotation seeks the fixture audio to 0.425099 seconds. Its ten-second clip preview prepares successfully, saves without validation errors, and both clip and annotation survive another reload. Only fictional fixture content was used in screenshots and these UI tests.
+
+All 16 new capture HTTP checks also pass against the protected deployment, including isolated demo visitors and cookie-free clip viewing followed by revocation. Seven deployed release checks pass: login routing, demo login, Secure/HttpOnly cookies, account access, logout/session revocation, and unchanged public-production access. The existing private recording remains ready and paid processing is disabled.
+
+The original public production's deployment ID and immutable URL match the pre-module baseline. `main` remains at `7cf99f9b686f76f77465ca4dbe2fff610b8cfc51`. Current private logs are unstaged, automatic capture is active, historical-prefix and frame checksums pass, and hook files have no changes. Additional API expenditure: **US$0**.
+
+Screenshots: [local recording screen](screenshots/module3/capture.png), [protected-preview recording screen](screenshots/module3/protected-capture.png).
