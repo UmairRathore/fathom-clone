@@ -58,3 +58,16 @@ Build it with `node scripts/build-clip-viewer.mjs`; the generated project lives 
 - Additional OpenAI API expenditure: **$0**. No retranscription, meeting analysis or other model request is performed by this module.
 
 ![Fictional external clip viewer](screenshots/module2/clip-viewer.jpg)
+
+## Verified protected-preview release
+
+- Application implementation: `d75b917` on `codex/authentication-preview`, pushed to GitHub. The follow-up verification change makes the authorized preview test transport binary-safe and adds its regression fixture; it does not change application behavior.
+- Protected application deployment: `A5y17WYf3fijZosFqKfF9Mpdrdp9`, serving [the existing Sounding preview](https://sounding-preview-umair-rathore.vercel.app). Vercel Authentication remains enabled.
+- Separate free public clip-only deployment: `HoH6j6htqPxWCEo3LyatVx8TkaJz`, serving `sounding-clips-umair-rathore.vercel.app`. Its root is a generic welcome page; authentication, private recording-list and workspace paths return 404. Bearer clip URLs are deliberately absent from this report.
+- **48 automated tests** passed. TypeScript, lint, formatting, production build, dependency audit, staged privacy checks and configured-secret/UTF-8 scanning passed. Function tracing confirms that both owner extraction routes include the FFmpeg executable.
+- **57 real-media/security checks passed locally and again against the deployed protected application**, using cookie-free requests to the public viewer. Beginning, middle and ending excerpts exactly match independently decoded original PCM samples; expected sample counts, scoped byte ranges, cross-account denial, no source URLs/identifiers and immediate revocation were verified. All temporary HTTP test clips were removed.
+- Nineteen isolated demo/journey HTTP checks, 34 existing recording-security HTTP checks and seven deployed release/authentication/original-production checks passed. Expiry and concurrency interruption are covered with temporary database fixtures. No 24-hour wall-clock waiting is claimed.
+- The deployed browser verified preserved Module 1 insights and original highlight, clip controls, automatic pause of the main recording, and an extracted 4.250-second preview ending at exactly 4.250 seconds. An already-open fictional guest page removed audio and transcript on revoked status without a reload.
+- Two saved real sample ranges remain private for inspection (30 seconds and 4.25 seconds); **all real-recording test sharing links are revoked**. The fictional browser test link is also revoked. Ten inaccessible derived artifacts were cleaned; original media was not selected.
+- Original recording hash, immutable transcript/analysis, four extracted tasks and existing highlight remain unchanged. Module 1 still exposes its six derived source-backed suggestions. The live AI ledger contains exactly the original two requests, at estimated total US$0.07806735; additional expenditure is **US$0**. Paid processing remains disabled.
+- Main/origin-main remain `7cf99f9`. Vercel metadata confirms the original public application's immutable deployment ID and URL are unchanged. Current privacy-sensitive automatic logs are unstaged and excluded from commits/deployments.
