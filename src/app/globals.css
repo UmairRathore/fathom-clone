@@ -2619,3 +2619,50 @@ button:hover {
   color: #5dd6ff;
   white-space: nowrap;
 }
+
+.transcript-paragraph {
+  min-height: 0;
+  padding-bottom: 20px;
+}
+.transcript-utterance {
+  display: inline;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  text-align: start;
+  border-radius: 2px;
+}
+.transcript-utterance:hover,
+.transcript-utterance:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.transcript-utterance.is-current {
+  background: #06475c;
+  outline: 1px solid #22badd;
+}
+.transcript-explanation {
+  font-size: 11px;
+  line-height: 1.5;
+  color: #a3a3af;
+  margin: 8px 0 12px;
+}
+.transcript-count {
+  line-height: 1.5;
+}
+.segment-tools > span {
+  color: #a3a3af;
+  font-size: 9px;
+}
+
+.transcript-overview {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+.transcript-overview .transcript-count {
+  flex-basis: 100%;
+}

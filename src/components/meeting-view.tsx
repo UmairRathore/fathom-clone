@@ -1,4 +1,5 @@
 "use client";
+import { formatTranscript } from "@/lib/transcript";
 import { useEffect, useRef, useState } from "react";
 import {
   Copy,
@@ -108,14 +109,7 @@ export function MeetingView({
   }
   async function copyTranscript() {
     try {
-      await navigator.clipboard.writeText(
-        meeting.segments
-          .map(
-            (s) =>
-              `${formatTime(s.start)} ${meeting.participants.find((p) => p.id === s.speakerId)?.name}: ${s.text}`,
-          )
-          .join("\n\n"),
-      );
+      await navigator.clipboard.writeText(formatTranscript(meeting));
       notify("Transcript copied");
     } catch {
       notify("Clipboard access is unavailable. Try the transcript download.");
@@ -136,12 +130,7 @@ export function MeetingView({
     URL.revokeObjectURL(url);
   }
   function download() {
-    const text = meeting.segments
-      .map(
-        (s) =>
-          `${formatTime(s.start)} ${meeting.participants.find((p) => p.id === s.speakerId)?.name}: ${s.text}`,
-      )
-      .join("\n\n");
+    const text = formatTranscript(meeting);
     const url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
     const anchor = document.createElement("a");
     anchor.href = url;

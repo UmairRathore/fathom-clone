@@ -1,4 +1,5 @@
 import test from "node:test";
+import { formatTranscript, transcriptCoverage } from "../src/lib/transcript";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { randomUUID, randomBytes } from "node:crypto";
@@ -30,6 +31,8 @@ const transcript = parseTranscription(
     segments: [
       { start: 0, end: 10, text: "Alex will review the report by Friday.", speaker: "A" },
       { start: 10, end: 20, text: "We decided to keep the launch small.", speaker: "B" },
+      { start: 50.125, end: 52.875, text: "Middle discussion continues.", speaker: "A" },
+      { start: 104.25, end: 106, text: "Closing discussion is complete.", speaker: "A" },
     ],
   },
   "gpt-4o-transcribe-diarize",
@@ -162,6 +165,9 @@ test("OpenAI boundary uses mocks, strict output, timeouts and no automatic retry
       const form = options!.body as FormData;
       assert.equal(form.get("response_format"), "diarized_json");
       assert.equal(form.get("chunking_strategy"), "auto");
+      const file = form.get("file") as File;
+      assert.equal(file.name, "test.wav");
+      assert.deepEqual(Buffer.from(await file.arrayBuffer()), wav);
       return Response.json({
         segments: [{ start: 0, end: 10, text: evidence.quote, speaker: "A" }],
       });
@@ -317,6 +323,23 @@ test("durable private recording workflow and spending ledger", async (t) => {
     const meeting = await getOwnedMeeting(pool, a, job.id);
     assert(meeting);
     assert.equal(meeting.meeting.source, "upload");
+    assert.deepEqual(ready.transcript!.segments, transcript.segments);
+    assert.deepEqual(meeting.meeting.segments, transcript.segments);
+    assert.equal(
+      transcriptCoverage(meeting.meeting.segments, meeting.meeting.duration).lastEnd,
+      106,
+    );
+    assert.equal(
+      formatTranscript(meeting.meeting),
+      formatTranscript({
+        segments: transcript.segments,
+        participants: transcript.speakers,
+        highlights: meeting.meeting.highlights,
+      }),
+    );
+    assert.deepEqual(meeting.meeting.participants, transcript.speakers);
+    assert.deepEqual(meeting.state.highlights, meeting.meeting.highlights);
+    assert.equal(meeting.state.highlights.length, analysis.highlights.length);
     assert.equal(meeting.state.actions.length, 1);
     assert.equal(meeting.state.actions[0].assigneeName, "Alex");
     assert.equal(await getOwnedMeeting(pool, b, job.id), null);

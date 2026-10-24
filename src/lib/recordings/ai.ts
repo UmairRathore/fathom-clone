@@ -73,9 +73,9 @@ export function parseTranscription(
     .filter((s) => s.text.trim())
     .sort((a, b) => a.start - b.start);
   if (!segments.length) throw new ProcessingError("no_speech");
-  const labels = [
-    ...new Set(segments.map((s) => (model === "whisper-1" ? "unknown" : s.speaker || "unknown"))),
-  ];
+  const voiceLabel = (s: { speaker?: string | null }) =>
+    model === "whisper-1" ? "unknown" : s.speaker?.trim() || "unknown";
+  const labels = [...new Set(segments.map((s) => voiceLabel(s)))];
   if (
     labels.length > 30 ||
     segments.some((s) => s.end <= s.start || s.end > duration + 0.25 || s.start >= duration)
@@ -92,8 +92,7 @@ export function parseTranscription(
     start: s.start,
     end: Math.min(s.end, duration),
     text: s.text.trim(),
-    speakerId:
-      speakers[labels.indexOf(model === "whisper-1" ? "unknown" : s.speaker || "unknown")].id,
+    speakerId: speakers[labels.indexOf(voiceLabel(s))].id,
   }));
   return transcriptionSchema.parse({
     model,
