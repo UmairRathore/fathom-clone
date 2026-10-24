@@ -58,6 +58,8 @@ The browser returns JPEG bytes. Current authentication images use .jpg extension
 | 10-final-preview-mobile.jpg  | Final deployed login                                    | 390×844      |
 | neon-preview-free-plan.jpg   | Non-sensitive project/region/Free Plan crop             | Crop         |
 
-Final deployment2DyHuXFzY7SJnqPhE9AeDiBcNZDR is Ready and the preview alias points to it. Seven final-release checks passed: plain login redirect, demo login, Secure/HttpOnly cookie, authenticated account, logout, revoked-session rejection and original public production HTTP200. Alias inspection confirms production still points to the original deployment. The preview browser reported zero console warnings/errors. Dependency audit reported zero known production vulnerabilities.
+Final deployment 9deY2DXsmVBqcFVe4qB9deAbi1QQ is Ready and the preview alias points to it. Seven final-release checks passed: plain login redirect, demo login, Secure/HttpOnly cookie, authenticated account, logout, revoked-session rejection and original public production HTTP200. Alias inspection confirms production still points to the original deployment. The preview browser reported zero console warnings/errors. Dependency audit reported zero known production vulnerabilities.
 
 Candidate-file review includes the automatic agent logs: all checked text decodes as valid UTF-8 and contains no configured secret values. Fathom captures, environment files and local databases remain ignored. This is a targeted review, not a claim about future provider configuration.
+
+The final recovery refinement verifies that an OAuth-only test fixture receives no Sounding reset email, while keeping the generic public response. Account management shows password recovery only for accounts with a credential/password record. Google OAuth itself remains unverified until its external client is configured.
