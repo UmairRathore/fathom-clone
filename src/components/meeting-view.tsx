@@ -18,6 +18,7 @@ import type { Clip } from "@/lib/journey";
 import { Header } from "./header";
 import { MediaPlayer, type SeekRequest } from "./media-player";
 import { Transcript } from "./transcript";
+import { InsightReviewPanel } from "./insight-review";
 import { SummaryPanel } from "./summary-panel";
 import { MeetingAsk } from "./meeting-ask";
 import { EntryEditor, type EditorState } from "./entry-editor";
@@ -103,7 +104,10 @@ export function MeetingView({
   function saveHighlight(item: Highlight) {
     save((current) => ({
       ...current,
-      highlights: [...current.highlights, item].sort((a, b) => a.time - b.time),
+      highlights: [
+        ...current.highlights.filter((h) => h.id !== item.id),
+        { ...item, origin: item.origin ?? "manual" },
+      ].sort((a, b) => a.time - b.time),
     }));
     notify("Highlight added");
   }
@@ -178,19 +182,39 @@ export function MeetingView({
             aria-labelledby={`tab-${tab}`}
           >
             {tab === "summary" ? (
-              <SummaryPanel
-                meeting={meeting}
-                actions={state.actions}
-                preferences={shared ? viewerPreferences : state.preferences}
-                update={(preferences) =>
-                  shared
-                    ? setViewerPreferences(preferences)
-                    : save((current) => ({ ...current, preferences }))
-                }
-                seek={jump}
-                notify={notify}
-                readonly={shared}
-              />
+              <>
+                <SummaryPanel
+                  meeting={meeting}
+                  actions={state.actions}
+                  preferences={shared ? viewerPreferences : state.preferences}
+                  update={(preferences) =>
+                    shared
+                      ? setViewerPreferences(preferences)
+                      : save((current) => ({ ...current, preferences }))
+                  }
+                  seek={jump}
+                  notify={notify}
+                  readonly={shared}
+                />
+                {meeting.source === "upload" && !shared && (
+                  <InsightReviewPanel
+                    id={meeting.id}
+                    seek={jump}
+                    highlights={state.highlights}
+                    addHighlight={saveHighlight}
+                    applyAction={(detail) =>
+                      save((current) => ({
+                        ...current,
+                        actions: current.actions.map((a) =>
+                          a.id === detail.id
+                            ? { ...a, assigneeName: detail.assigneeName, dueDate: detail.dueDate }
+                            : a,
+                        ),
+                      }))
+                    }
+                  />
+                )}
+              </>
             ) : tab === "transcript" ? (
               <Transcript
                 meeting={meeting}
@@ -451,6 +475,18 @@ export function MeetingView({
                         <small>· {formatTime(h.end - h.time)}</small>
                         <p>{h.description}</p>
                         <span className="category-name">
+                          {meeting.source === "upload" && (
+                            <small>
+                              {h.origin === "review"
+                                ? "Suggested from evidence"
+                                : h.origin === "automatic" ||
+                                    (!h.origin &&
+                                      meeting.highlights.some((original) => original.id === h.id))
+                                  ? "AI generated"
+                                  : "Manual"}{" "}
+                              |{" "}
+                            </small>
+                          )}
                           {h.category} · {formatTime(h.time)}
                         </span>
                       </span>

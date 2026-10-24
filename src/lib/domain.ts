@@ -20,6 +20,7 @@ export const categories = [
 ] as const;
 export type Category = (typeof categories)[number];
 export type Highlight = {
+  origin?: "manual" | "automatic" | "review";
   id: string;
   title: string;
   time: number;

@@ -48,6 +48,7 @@ try {
     "/api/recordings",
     `/api/recordings/${id}`,
     `/api/recordings/${id}/media`,
+    `/api/recordings/${id}/review`,
     `/api/meetings/${id}`,
   ])
     check((await request(path)).status === 401, "anonymous private API denial");
@@ -57,6 +58,20 @@ try {
   check(
     (await request("/home", a)).ok && (await request("/home", b)).ok,
     "private workspace initialization",
+  );
+  check(
+    (await request(`/api/recordings/${id}/review`, b)).status === 404,
+    "second account cannot read insight review",
+  );
+  const reviewResponse = await request(`/api/recordings/${id}/review`, a);
+  const review = await reviewResponse.json();
+  check(
+    reviewResponse.ok && review.audioVerified === false && review.basis === "saved-transcript",
+    "owner-only non-billable insight review",
+  );
+  check(
+    reviewResponse.headers.get("cache-control")?.includes("no-store") === true,
+    "private insight review cannot be cached",
   );
   const record = await request(`/api/recordings/${id}`, a);
   check(record.ok, "owner can read processing state");

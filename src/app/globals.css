@@ -2666,3 +2666,24 @@ button:hover {
 .transcript-overview .transcript-count {
   flex-basis: 100%;
 }
+
+.insight-review {
+  border-top: 1px solid var(--border, #ddd);
+  margin-top: 28px;
+  padding-top: 20px;
+}
+.insight-review article {
+  border: 1px solid var(--border, #ddd);
+  border-radius: 8px;
+  margin: 14px 0;
+  padding: 14px;
+}
+.insight-review blockquote {
+  margin: 10px 0;
+  padding-left: 12px;
+  border-left: 3px solid #91a5ed;
+}
+.insight-review button {
+  margin: 4px;
+  text-decoration: underline;
+}

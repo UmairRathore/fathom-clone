@@ -14,7 +14,14 @@ export function processedMeeting(
   const time = (id: string) => transcript.segments.find((s) => s.id === id)!.start;
   const points = (title: string, list: Analysis["takeaways"]): SummarySection[] =>
     list.length
-      ? [{ title, bullets: list.map((p) => p.text), time: time(list[0].sources[0].segmentId) }]
+      ? [
+          {
+            title,
+            bullets: list.map((p) => p.text),
+            time: time(list[0].sources[0].segmentId),
+            bulletTimes: list.map((p) => time(p.sources[0].segmentId)),
+          },
+        ]
       : [];
   const purpose = points("Meeting Purpose", analysis.purpose ? [analysis.purpose] : []);
   const enhanced = [
@@ -74,6 +81,7 @@ export function processedMeeting(
         time: s.start,
         end: s.end,
         category: "Highlight",
+        origin: "automatic",
       };
     }),
   };

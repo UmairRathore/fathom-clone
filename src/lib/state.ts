@@ -17,6 +17,7 @@ export const actionSchema = z.object({
   sourceSegmentId: z.string().max(100).optional(),
 });
 export const highlightSchema = z.object({
+  origin: z.enum(["manual", "automatic", "review"]).optional(),
   id: z.string().min(1).max(100),
   title: z.string().trim().min(1, "Add a title").max(120),
   time: z.number().finite().nonnegative(),
