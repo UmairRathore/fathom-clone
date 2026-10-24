@@ -43,3 +43,13 @@ Before enabling private signup in a future task: configure and actually verify d
 Screenshots contain only public UI or fictional demo content: [signup unavailable](screenshots/auth-audit/signup-unavailable.png), [fresh demo meeting](screenshots/auth-audit/demo-meeting.png).
 
 Protected-preview release status and final HTTP counts are recorded after deployment. Public production, `main`, private records, historical logs and capture hooks are not deployment or modification targets.
+
+## Release evidence
+
+Audit/regression commit `2bf7197` is pushed on `codex/authentication-preview`. The protected alias points to `fathom-clone-aws9l1myl-umair-rathore.vercel.app`, deployment `6mFpFtPPGagrBF4LesWqS2rMM98D`; Vercel Authentication remains enabled. No files under `src/` were changed by this audit, and no runtime security correction is claimed.
+
+Final results: **58 application tests, 28 local authentication HTTP checks, 27 deployed authentication HTTP checks and 34 local private-recording security HTTP checks pass**. TypeScript, lint, formatting, local and Vercel production builds pass. The production dependency audit reports zero vulnerabilities. The post-push scoped secret scan checks 397 reachable Git blobs, all five local logs and 40 browser assets; published branch HEAD matches the audited commit and no configured secret or QA password is found.
+
+After deployment, the browser follows the signup unavailable-state link to login, enters a fresh public demo without credentials, shows fictional meetings and no private recording, and signs out successfully. Reopening a browser **tab** and refreshing were tested; restarting the browser process was not. Actual private signup, actual verification delivery, actual reset delivery, name edge cases and password confirmation remain unverified/unavailable as explained above. Fixture email/token tests are explicitly separate from production delivery.
+
+Read-only capture verification confirms valid UTF-8 and frame checksums, the current audit prompt, the unchanged historical byte prefix and unchanged hook configuration. The current privacy-sensitive session log remains unstaged. Public production retains its original deployment, `main` is unchanged, and no private recording or original transcript was edited. Additional paid API expenditure: **US$0**.
