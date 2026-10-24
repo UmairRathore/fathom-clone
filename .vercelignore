@@ -10,3 +10,6 @@ node_modules/
 coverage/
 *.tsbuildinfo
 CAPTURE-TEST.md
+
+.local-postgres/
+.auth-test/

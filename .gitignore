@@ -10,3 +10,7 @@ __pycache__/
 *.pyc
 recon/screenshots/
 .playwright/
+
+recon/auth/screenshots/
+.local-postgres/
+.auth-test/
