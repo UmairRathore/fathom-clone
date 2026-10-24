@@ -130,7 +130,7 @@ export function AuthScreen({
                     : "Sign in to Sounding"}
           </h1>
           {issued ? (
-            <>
+            <div className="auth-form auth-credentials">
               <p className="auth-notice">
                 You are signed in. This is the only time your password is available. Save your
                 credentials before continuing.
@@ -179,7 +179,7 @@ export function AuthScreen({
               >
                 Continue to workspace <ArrowRight size={17} />
               </button>
-            </>
+            </div>
           ) : recovery ? (
             <>
               <p className="auth-notice">

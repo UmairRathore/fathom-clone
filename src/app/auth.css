@@ -443,3 +443,17 @@
     animation: none;
   }
 }
+
+.auth-card > .auth-provider {
+  margin: 24px auto 0;
+  max-width: 100%;
+}
+.auth-card > .auth-config-note {
+  margin: 12px auto 0;
+}
+.auth-credentials .auth-provider {
+  width: 100%;
+}
+.auth-credentials .auth-notice {
+  margin: 0;
+}
