@@ -23,3 +23,14 @@
 - TypeScript, lint, and production build passed before browser checks. Domain/media invariant tests added afterward and run before commit.
 - Transient development compile errors occurred while files were being replaced and resolved; production builds passed. The signing policy blocked invoking a local PowerShell script and the `py` launcher had no installed interpreter. Media was generated via inline .NET commands and the bundled Python runtime, without changing execution policy.
 - Automatic capture: the same two completed exchanges remain present; this development turn is still ongoing.
+
+## Milestone 3 — Summaries, actions, and highlights
+
+- Browser created an action item, assigned it to Alex, completed it, reloaded, and verified its checked state persisted.
+- Browser created a Feedback highlight from the 0:00 transcript segment; verified it remained after reload.
+- Browser switched Enhanced → Project Update, waited for the actual generation state to resolve, then selected concise + action-focused customization. The resulting Action Items & Owners structure persisted after reload.
+- Added explicit accessible names to select controls after the initial assignee selector test failed on its wrapped label.
+- Storage is versioned, Zod-validated browser localStorage with an in-session fallback and cross-tab refresh. It is deliberately isolated per evaluator/browser and is not a shared database.
+- All summary/Ask behavior is deterministic and disclosed. English/Auto are available; no translation is claimed. Free-form customization notes are retained but not interpreted as AI instructions.
+- Added tests for invalid persisted data, foreign-key/timestamp validation, distinct summary templates, concise/action-focused output, and grounded answer citations.
+- Existing completed log exchanges remain untouched; this development turn is still in progress.

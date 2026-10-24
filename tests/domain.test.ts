@@ -54,3 +54,27 @@ test("search indexes titles, participants, summary text, and late transcript con
   assert(searchMeetings(meetings, "invite button contrast").some(m => m.id === "design-critique"));
   assert.equal(searchMeetings(meetings, "no-such-phrase-90210").length, 0);
 });
+import { defaultState, restoreState } from "../src/lib/state";
+import { buildDemoSummary, answerMeetingQuestion } from "../src/lib/summary-service";
+test("persistence rejects malformed data, invalid assignees, and out-of-range timestamps", () => {
+  const meeting=meetings[0], initial=defaultState(meeting);
+  assert.deepEqual(restoreState("not json",meeting),initial);
+  const valid={...initial,actions:[...initial.actions,{id:"test",text:"A durable item",time:5,done:true,assignee:"alex"}]};
+  assert.equal(restoreState(JSON.stringify(valid),meeting).actions.at(-1)!.done,true);
+  assert.deepEqual(restoreState(JSON.stringify({...valid,actions:[{...valid.actions[0],time:9999}]}),meeting),initial);
+  assert.deepEqual(restoreState(JSON.stringify({...valid,actions:[{...valid.actions[0],assignee:"unknown-person"}]}),meeting),initial);
+  assert.deepEqual(restoreState(JSON.stringify({...valid,highlights:[{...valid.highlights[0],end:9999}]}),meeting),initial);
+});
+test("summary formats and customization produce distinct deterministic structures", () => {
+  const m=meetings[0], prefs=defaultState(m).preferences;
+  const enhanced=buildDemoSummary(m,prefs,m.actions);
+  const project=buildDemoSummary(m,{...prefs,template:"Project Update"},m.actions);
+  assert(enhanced.some(s=>s.title==="Key Takeaways"));
+  assert(project.some(s=>s.title==="Issues & Tickets"));
+  const actions=buildDemoSummary(m,{...prefs,focus:"actions",length:"concise"},m.actions);
+  assert.equal(actions[1].title,"Action Items & Owners");
+  assert.equal(actions[1].bullets.length,2);
+  const answer=answerMeetingQuestion(m,"who owns action items",m.actions);
+  assert(answer.text.includes("Alex Rivera"));
+  assert(answer.citations.every(c=>c.time>=0&&c.time<m.duration));
+});
