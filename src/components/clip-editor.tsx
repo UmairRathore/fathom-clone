@@ -2,7 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Modal } from "./modal";
 import type { Meeting } from "@/lib/domain";
-import { clipSchema, validClip, type Clip } from "@/lib/journey";
+import { clipSchema, type Clip } from "@/lib/journey";
+import { clipEditorError } from "@/lib/clip-editor-validation";
 export function ClipEditor({
   meeting,
   start,
@@ -41,25 +42,19 @@ export function ClipEditor({
     setPreview("");
   }
   function value() {
-    const parsed = clipSchema.safeParse({
-      id: existing?.id ?? crypto.randomUUID(),
-      title,
-      start: from.trim() ? Number(from) : NaN,
-      end: to.trim() ? Number(to) : NaN,
-    });
-    if (
-      !parsed.success ||
-      !validClip(parsed.data, meeting) ||
-      parsed.data.end - parsed.data.start > 120 ||
-      parsed.data.end - parsed.data.start < 0.1 - 1e-9
-    ) {
-      setError(
-        `Choose a title and a 0.1–120 second range within this ${meeting.duration.toFixed(2)} second recording.`,
-      );
+    const validation = clipEditorError(title, from, to, meeting.duration);
+    if (validation) {
+      setError(validation);
       return null;
     }
+    const parsed = clipSchema.parse({
+      id: existing?.id ?? crypto.randomUUID(),
+      title,
+      start: Number(from),
+      end: Number(to),
+    });
     setError("");
-    return parsed.data;
+    return parsed;
   }
   async function prepare() {
     const clip = value();
@@ -108,7 +103,10 @@ export function ClipEditor({
           maxLength={120}
           value={title}
           disabled={!!busy}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => {
+            setError("");
+            setTitle(e.target.value);
+          }}
         />
       </label>
       <div className="journey-controls">
@@ -123,6 +121,7 @@ export function ClipEditor({
             value={from}
             disabled={!!busy}
             onChange={(e) => {
+              setError("");
               invalidate();
               setFrom(e.target.value);
             }}
@@ -139,12 +138,14 @@ export function ClipEditor({
             value={to}
             disabled={!!busy}
             onChange={(e) => {
+              setError("");
               invalidate();
               setTo(e.target.value);
             }}
           />
         </label>
       </div>
+      <p className="modal-description">Allowed duration: 0.1–120 seconds, within the recording.</p>
       <p aria-live="polite">
         Selected duration:{" "}
         {Number.isFinite(duration) && duration > 0
