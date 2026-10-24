@@ -8,6 +8,7 @@ export const clipSchema = z.object({
 });
 export type Clip = z.infer<typeof clipSchema>;
 export const captureSchema = z.object({
+  sessionId: z.string().min(1).max(100).optional(),
   stage: z.enum(["connected", "scheduled", "recording", "processing", "ready"]),
   elapsed: z.number().finite().nonnegative(),
 });

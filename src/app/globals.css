@@ -2721,3 +2721,54 @@ button:hover {
 .modal audio {
   width: 100%;
 }
+
+.capture-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.capture-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #8f96a9;
+}
+.capture-dot.active {
+  background: #f66c7c;
+  box-shadow: 0 0 0 5px #f66c7c20;
+}
+.capture-time {
+  font-size: 28px;
+  font-variant-numeric: tabular-nums;
+}
+.live-highlight-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 14px 0;
+}
+.live-annotations {
+  border-top: 1px solid #343845;
+  margin-top: 24px;
+  padding-top: 16px;
+}
+.live-annotations ol {
+  padding-left: 20px;
+  max-height: 300px;
+  overflow: auto;
+}
+.live-annotations li {
+  margin: 10px 0;
+  padding: 10px;
+  background: #ffffff06;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+.live-annotations li p {
+  white-space: pre-wrap;
+  margin-bottom: 0;
+}
+.journey-card textarea {
+  width: 100%;
+  min-height: 70px;
+}

@@ -17,6 +17,7 @@ export const actionSchema = z.object({
   sourceSegmentId: z.string().max(100).optional(),
 });
 export const highlightSchema = z.object({
+  captureSessionId: z.string().min(1).max(100).optional(),
   origin: z.enum(["manual", "automatic", "review"]).optional(),
   id: z.string().min(1).max(100),
   title: z.string().trim().min(1, "Add a title").max(120),
@@ -60,7 +61,8 @@ export function restoreState(raw: string, meeting: Meeting): MeetingState {
       state.clips?.some((clip) => !validClip(clip, meeting)) ||
       (state.capture &&
         (state.capture.elapsed > meeting.duration ||
-          (["processing", "ready"].includes(state.capture.stage) &&
+          (!state.capture.sessionId &&
+            ["processing", "ready"].includes(state.capture.stage) &&
             state.capture.elapsed !== meeting.duration) ||
           (["connected", "scheduled"].includes(state.capture.stage) &&
             state.capture.elapsed !== 0))) ||

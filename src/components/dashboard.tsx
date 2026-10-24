@@ -94,7 +94,7 @@ export function Dashboard() {
                 Upload Recording
               </Link>
               <Link className="journey-entry" href="/capture">
-                Try the recording journey →
+                Start recording simulation →
               </Link>
               <p>Your conversations. All in one place.</p>
             </div>

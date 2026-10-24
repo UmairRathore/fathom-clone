@@ -477,7 +477,7 @@ export function MeetingView({
                         <small>· {formatTime(h.end - h.time)}</small>
                         <p>{h.description}</p>
                         <span className="category-name">
-                          {meeting.source === "upload" && (
+                          {(meeting.source === "upload" || h.origin === "manual") && (
                             <small>
                               {h.origin === "review"
                                 ? "Suggested from evidence"
