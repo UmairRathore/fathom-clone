@@ -46,3 +46,26 @@
 - Fixed origin comparison from internal Next.js URL to request Host after browser share creation was rejected. No origin checks were disabled.
 - Added tests for authenticated decryption, expiry, tampering, wrong keys, and restricted snapshots omitting state.
 - The same completed exchanges remain in the automatic session log; no historical entries were altered.
+
+## Milestone 5 — Scale, responsive polish, and production preparation
+
+- Bundled Inter locally, refined timeline highlight spans/playhead to match reference treatment, and corrected multi-line summary bullet alignment. Source and implementation screenshots were inspected directly.
+- Actual production geometry at 1142 × 1532: header 51 px; player (113, 71), 531 × 300; sidebar (666, 71), 343 px wide; tabs y=371. Source estimates: player (113, 70), 531 × ~300; sidebar x≈666, 343 px wide. Primary detail geometry matches within the source measurement uncertainty.
+- Browser mobile check at 390 × 844: body scroll width 385 px, viewport 390 px; no page-level horizontal overflow. Library cards and transcript work at that size. Actions/annotations expand on mobile; timestamp jumps collapse that section so the transcript remains accessible.
+- Production long-meeting browser check at 1280 px: 59:00 selected long-236, 8 rendered rows; keyboard Home/End moved to first/last timeline points, ending at 60:00 with long-239 active and 6 rendered rows. These are observed DOM counts, not invented FPS metrics.
+- Added manual-scroll pause for wheel, keyboard, and touch in the virtualized transcript.
+- Clean production browser session reported **zero console errors or warnings** during long-transcript navigation.
+- Added a production HTTP smoke script. Its first attempt failed because tsx used CommonJS for top-level await; set the application package to ESM. Its next run exposed soft 404s caused by the root streaming loading boundary. Moved loading to the library route, rebuilt, and retested.
+- **11 production HTTP checks passed**: populated dashboard, unknown-meeting 404, real audio byte-range response, invalid-share 404/no data, foreign-origin rejection, malformed JSON rejection, payload-size rejection, invalid assignee rejection, public snapshot without cookies/authentication, restricted snapshot 404/no data, expired snapshot 404.
+- Professional README, demo walkthrough notes, Vercel configuration, environment example, and screenshots are included. No external assessment submission occurred.
+- Automatic log still contains the two completed verification exchanges and this turn’s automatically captured prompt. No manual additions or historical modifications were made.
+
+## Milestone 6 — Publication status
+
+- Production Next.js build and local production HTTP/browser verification are complete.
+- Existing Git remote is reachable over the configured SSH identity; remote HEAD remains the original capture commit until publication.
+- The GitHub connector does not list this newly created repository, so repository access was checked through its existing Git remote instead. No new repository was initialized.
+- Vercel CLI/account authorization is not available in this session. No public HTTPS deployment or public fresh-browser test is claimed.
+- External repository push/publication and deployment are the remaining approval/account steps. All source, demo media, tests, screenshots, and setup documentation are prepared for review first.
+
+Final staging check: the secret-review helper initially tried to read the old path of the moved loading file. Updated it to inspect added/copied/modified/renamed staged files and skip deleted paths, then reran successfully. No logs, environment files, private reference images, or credentials were changed or included by this correction.

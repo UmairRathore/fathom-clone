@@ -1,0 +1,8 @@
+node_modules
+.next
+.agent-logs
+recon
+public
+.env.local
+package-lock.json
+next-env.d.ts

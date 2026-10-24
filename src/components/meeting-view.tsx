@@ -1,44 +1,451 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Copy, Diamond, Link2, LockKeyhole, MoreVertical, Pencil, Plus, Video, ListTodo, Download } from "lucide-react";
+import {
+  Copy,
+  Diamond,
+  Link2,
+  LockKeyhole,
+  MoreVertical,
+  Pencil,
+  Plus,
+  Video,
+  ListTodo,
+  Download,
+} from "lucide-react";
 import { Header } from "./header";
 import { MediaPlayer, type SeekRequest } from "./media-player";
 import { Transcript } from "./transcript";
 import { SummaryPanel } from "./summary-panel";
 import { MeetingAsk } from "./meeting-ask";
 import { EntryEditor, type EditorState } from "./entry-editor";
-import { formatTime, type ActionItem, type Highlight, type Meeting, type Segment } from "@/lib/domain";
+import {
+  formatTime,
+  type ActionItem,
+  type Highlight,
+  type Meeting,
+  type Segment,
+} from "@/lib/domain";
 import { useMeetingState } from "@/lib/persistence";
 import { ShareDialog } from "./share-dialog";
 import type { SummaryPreferences, MeetingState } from "@/lib/state";
-export function MeetingView({ meeting, shared=false, initialTime=0, initialQuery="", initialPreferences }: {meeting:Meeting;shared?:boolean;initialTime?:number;initialQuery?:string;initialPreferences?:SummaryPreferences}) {
-  const [tab,setTab]=useState(initialQuery||initialTime?"transcript":"summary");
-  const [time,setTime]=useState(initialTime);
-  const [seekRequest,setSeekRequest]=useState<SeekRequest>({time:initialTime,revision:0});
-  const [showSidebar,setShowSidebar]=useState(false);
-  const [editor,setEditor]=useState<EditorState|null>(null);
-  const [toast,setToast]=useState("");
-  const [sharing,setSharing]=useState(false);
-  const [viewerPreferences,setViewerPreferences]=useState<SummaryPreferences>(initialPreferences??{template:"Enhanced",length:"standard",focus:"all",guidance:""});
-  const [more,setMore]=useState(false);
-  const toastTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
-  const {state,update}=useMeetingState(meeting,shared);
-  useEffect(()=>()=>{if(toastTimer.current)clearTimeout(toastTimer.current);},[]);
-  function notify(text:string){setToast(text);if(toastTimer.current)clearTimeout(toastTimer.current);toastTimer.current=setTimeout(()=>setToast(""),3000);}
-  function save(updater:(state:MeetingState)=>MeetingState){const durable=update(updater);if(!durable)notify("Browser storage is unavailable. Changes will last for this session only.");}
-  function seek(next:number){const clamped=Math.max(0,Math.min(next,meeting.duration));setTime(clamped);setSeekRequest(previous=>({time:clamped,revision:previous.revision+1}));}
-  function jump(next:number){seek(next);setTab("transcript");}
-  function onCreate(segment:Segment,kind:"action"|"highlight"){setEditor(kind==="action"?{kind,time:segment.start}:{kind,time:segment.start,end:segment.end,excerpt:segment.text});}
-  function saveAction(item:ActionItem){save(current=>({...current,actions:current.actions.some(a=>a.id===item.id)?current.actions.map(a=>a.id===item.id?item:a):[...current.actions,item]}));notify("Action item saved");}
-  function saveHighlight(item:Highlight){save(current=>({...current,highlights:[...current.highlights,item].sort((a,b)=>a.time-b.time)}));notify("Highlight saved");}
-  async function copyTranscript(){try{await navigator.clipboard.writeText(meeting.segments.map(s=>`${formatTime(s.start)} ${meeting.participants.find(p=>p.id===s.speakerId)?.name}: ${s.text}`).join("\n\n"));notify("Transcript copied");}catch{notify("Clipboard access is unavailable. Try the transcript download.");}}
-  function download(){const text=meeting.segments.map(s=>`${formatTime(s.start)} ${meeting.participants.find(p=>p.id===s.speakerId)?.name}: ${s.text}`).join("\n\n");const url=URL.createObjectURL(new Blob([text],{type:"text/plain;charset=utf-8"}));const anchor=document.createElement("a");anchor.href=url;anchor.download=`${meeting.id}-transcript.txt`;anchor.click();URL.revokeObjectURL(url);setMore(false);}
-  return <><Header detail shared={shared}/>{shared&&<div className="shared-banner"><strong>Shared recording</strong> · Read-only demo · Fictional meeting content</div>}<main className="call-layout"><section className="call-main"><MediaPlayer meeting={meeting} time={time} onTime={setTime} seekRequest={seekRequest} highlights={state.highlights}/><div className="call-tabs" role="tablist" aria-label="Meeting content">{["summary","transcript","ask"].map(t=><button key={t} role="tab" aria-controls={`panel-${t}`} id={`tab-${t}`} aria-selected={tab===t} className={tab===t?"active":""} onClick={()=>setTab(t)}>{t==="ask"?"ASK SOUNDING":t.toUpperCase()}</button>)}</div><div className="call-content" role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
-    {tab==="summary"?<SummaryPanel meeting={meeting} actions={state.actions} preferences={shared?viewerPreferences:state.preferences} update={preferences=>shared?setViewerPreferences(preferences):save(current=>({...current,preferences}))} seek={jump} notify={notify} readonly={shared}/>:tab==="transcript"?<Transcript meeting={meeting} time={time} seek={seek} highlights={state.highlights} initialQuery={initialQuery} readonly={shared} onCreate={onCreate} copy={copyTranscript}/>:<MeetingAsk meeting={meeting} actions={state.actions} seek={jump}/>}
-    </div></section><aside className={`call-sidebar ${showSidebar?"show-mobile-sidebar":""}`}><h1 className="meeting-title">{meeting.title}</h1><p className="meeting-date">{new Date(meeting.date).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",timeZone:"UTC"})} · {formatTime(meeting.duration)}</p><div className="meeting-participants"><div className="mini-avatars">{meeting.participants.map(p=><span key={p.id} title={p.name} style={{background:p.color}}>{p.name.split(" ").map(n=>n[0]).join("")}</span>)}</div><span>{meeting.participants.length} participants</span></div><div className="share-row"><button className="share-button" onClick={()=>shared?copyTranscript():setSharing(true)}>{shared?"Copy Transcript":"Share"} {shared?<Copy size={14}/>:<Link2 size={14}/>}</button><div className="more-wrap"><button className="more-button" aria-label="More meeting options" aria-expanded={more} onClick={()=>setMore(!more)}><MoreVertical size={17}/></button>{more&&<div className="meeting-options"><button onClick={download}><Download size={13}/> Download transcript</button><button onClick={()=>{setTab("transcript");setMore(false);}}><ListTodo size={13}/> Open transcript</button></div>}</div></div><div className="mobile-tabs"><button onClick={()=>setShowSidebar(!showSidebar)}><ListTodo size={13}/>{showSidebar?"Hide":"Show"} actions & annotations</button></div>
-      <section className="sidebar-section"><div className="section-label"><h2>ACTION ITEMS</h2>{!shared&&<button aria-label="Add action item" onClick={()=>setEditor({kind:"action",time})}><Plus size={14}/></button>}</div>{state.actions.length?<div className="action-list">{state.actions.map(a=><div className="action-item" key={a.id}><input type="checkbox" aria-label={a.text} checked={a.done} disabled={shared} onChange={()=>save(current=>({...current,actions:current.actions.map(item=>item.id===a.id?{...item,done:!item.done}:item)}))}/><div><button className={`action-text ${a.done?"done":""}`} title="Go to transcript" onClick={()=>jump(a.time)}>{a.text}</button><div className="action-meta"><button onClick={()=>jump(a.time)}>{formatTime(a.time)}</button><span>·</span>{shared?<span>{meeting.participants.find(p=>p.id===a.assignee)?.name??"Unassigned"}</span>:<><select aria-label={`Assign ${a.text}`} value={a.assignee??""} onChange={e=>save(current=>({...current,actions:current.actions.map(item=>item.id===a.id?{...item,assignee:e.target.value||undefined}:item)}))}><option value="">Assign</option>{meeting.participants.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select><button aria-label={`Edit ${a.text}`} onClick={()=>setEditor({kind:"action",time:a.time,item:a})}><Pencil size={10}/></button></>}</div></div></div>)}</div>:<div className="sidebar-empty">None detected. {!shared&&<button onClick={()=>setTab("transcript")}>Add manually on transcript tab.</button>}</div>}</section>
-      <section className="sidebar-section"><div className="section-label"><h2>ANNOTATIONS</h2><small><LockKeyhole size={10}/> {shared?"SHARED DEMO":"DEMO CONTENT"}</small></div>{state.highlights.length?<div className="annotation-list">{state.highlights.map(h=><div className="annotation-row" key={h.id}><button className={`annotation category-${h.category.toLowerCase().replaceAll(" ","-")} ${time>=h.time&&time<h.end?"selected":""}`} onClick={()=>jump(h.time)}><Diamond size={14}/><span><strong>{h.title}</strong><small>· {formatTime(h.end-h.time)}</small><p>{h.description}</p><span className="category-name">{h.category} · {formatTime(h.time)}</span></span></button>{!shared&&<button className="annotation-link" aria-label={`Copy timestamp link for ${h.title}`} onClick={async()=>{try{await navigator.clipboard.writeText(`${window.location.origin}/calls/${meeting.id}?t=${h.time}`);notify("Workspace timestamp link copied. Use Share for an external viewer.");}catch{notify("Clipboard unavailable");}}}><Link2 size={12}/></button>}</div>)}</div>:<div className="sidebar-empty">No annotations yet. {shared?"":"Add a highlight from any transcript segment."}</div>}</section><p className="sidebar-note"><Video size={12}/>{meeting.description}<br/>{shared?"Read-only snapshot · Valid for 24 hours after creation.":"Edits are saved in this browser."} All people and content are fictional.</p>
-    </aside></main>{sharing&&!shared&&<ShareDialog meeting={meeting} state={state} changeVisibility={value=>save(current=>({...current,sharing:value}))} close={()=>setSharing(false)}/ >}{editor&&!shared&&<EntryEditor key={`${editor.kind}-${editor.time}-${editor.kind==="action"?editor.item?.id??"new":"new"}`} meeting={meeting} editor={editor} close={()=>setEditor(null)} saveAction={saveAction} saveHighlight={saveHighlight}/ >}{toast&&<div className="toast" role="status">{toast}</div>}</>;
+export function MeetingView({
+  meeting,
+  shared = false,
+  initialTime = 0,
+  initialQuery = "",
+  initialPreferences,
+}: {
+  meeting: Meeting;
+  shared?: boolean;
+  initialTime?: number;
+  initialQuery?: string;
+  initialPreferences?: SummaryPreferences;
+}) {
+  const [tab, setTab] = useState(initialQuery || initialTime ? "transcript" : "summary");
+  const [time, setTime] = useState(initialTime);
+  const [seekRequest, setSeekRequest] = useState<SeekRequest>({ time: initialTime, revision: 0 });
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [editor, setEditor] = useState<EditorState | null>(null);
+  const [toast, setToast] = useState("");
+  const [sharing, setSharing] = useState(false);
+  const [viewerPreferences, setViewerPreferences] = useState<SummaryPreferences>(
+    initialPreferences ?? { template: "Enhanced", length: "standard", focus: "all", guidance: "" },
+  );
+  const [more, setMore] = useState(false);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { state, update } = useMeetingState(meeting, shared);
+  useEffect(
+    () => () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    },
+    [],
+  );
+  function notify(text: string) {
+    setToast(text);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(""), 3000);
+  }
+  function save(updater: (state: MeetingState) => MeetingState) {
+    const durable = update(updater);
+    if (!durable)
+      notify("Browser storage is unavailable. Changes will last for this session only.");
+  }
+  function seek(next: number) {
+    const clamped = Math.max(0, Math.min(next, meeting.duration));
+    setTime(clamped);
+    setSeekRequest((previous) => ({ time: clamped, revision: previous.revision + 1 }));
+  }
+  function jump(next: number) {
+    seek(next);
+    setTab("transcript");
+    setShowSidebar(false);
+  }
+  function onCreate(segment: Segment, kind: "action" | "highlight") {
+    setEditor(
+      kind === "action"
+        ? { kind, time: segment.start }
+        : { kind, time: segment.start, end: segment.end, excerpt: segment.text },
+    );
+  }
+  function saveAction(item: ActionItem) {
+    save((current) => ({
+      ...current,
+      actions: current.actions.some((a) => a.id === item.id)
+        ? current.actions.map((a) => (a.id === item.id ? item : a))
+        : [...current.actions, item],
+    }));
+    notify("Action item saved");
+  }
+  function saveHighlight(item: Highlight) {
+    save((current) => ({
+      ...current,
+      highlights: [...current.highlights, item].sort((a, b) => a.time - b.time),
+    }));
+    notify("Highlight saved");
+  }
+  async function copyTranscript() {
+    try {
+      await navigator.clipboard.writeText(
+        meeting.segments
+          .map(
+            (s) =>
+              `${formatTime(s.start)} ${meeting.participants.find((p) => p.id === s.speakerId)?.name}: ${s.text}`,
+          )
+          .join("\n\n"),
+      );
+      notify("Transcript copied");
+    } catch {
+      notify("Clipboard access is unavailable. Try the transcript download.");
+    }
+  }
+  function download() {
+    const text = meeting.segments
+      .map(
+        (s) =>
+          `${formatTime(s.start)} ${meeting.participants.find((p) => p.id === s.speakerId)?.name}: ${s.text}`,
+      )
+      .join("\n\n");
+    const url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${meeting.id}-transcript.txt`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+    setMore(false);
+  }
+  return (
+    <>
+      <Header detail shared={shared} />
+      {shared && (
+        <div className="shared-banner">
+          <strong>Shared recording</strong> · Read-only demo · Fictional meeting content
+        </div>
+      )}
+      <main className="call-layout">
+        <section className="call-main">
+          <MediaPlayer
+            meeting={meeting}
+            time={time}
+            onTime={setTime}
+            seekRequest={seekRequest}
+            highlights={state.highlights}
+          />
+          <div className="call-tabs" role="tablist" aria-label="Meeting content">
+            {["summary", "transcript", "ask"].map((t) => (
+              <button
+                key={t}
+                role="tab"
+                aria-controls={`panel-${t}`}
+                id={`tab-${t}`}
+                aria-selected={tab === t}
+                className={tab === t ? "active" : ""}
+                onClick={() => setTab(t)}
+              >
+                {t === "ask" ? "ASK SOUNDING" : t.toUpperCase()}
+              </button>
+            ))}
+          </div>
+          <div
+            className="call-content"
+            role="tabpanel"
+            id={`panel-${tab}`}
+            aria-labelledby={`tab-${tab}`}
+          >
+            {tab === "summary" ? (
+              <SummaryPanel
+                meeting={meeting}
+                actions={state.actions}
+                preferences={shared ? viewerPreferences : state.preferences}
+                update={(preferences) =>
+                  shared
+                    ? setViewerPreferences(preferences)
+                    : save((current) => ({ ...current, preferences }))
+                }
+                seek={jump}
+                notify={notify}
+                readonly={shared}
+              />
+            ) : tab === "transcript" ? (
+              <Transcript
+                meeting={meeting}
+                time={time}
+                seek={seek}
+                highlights={state.highlights}
+                initialQuery={initialQuery}
+                readonly={shared}
+                onCreate={onCreate}
+                copy={copyTranscript}
+              />
+            ) : (
+              <MeetingAsk meeting={meeting} actions={state.actions} seek={jump} />
+            )}
+          </div>
+        </section>
+        <aside className={`call-sidebar ${showSidebar ? "show-mobile-sidebar" : ""}`}>
+          <h1 className="meeting-title">{meeting.title}</h1>
+          <p className="meeting-date">
+            {new Date(meeting.date).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+              timeZone: "UTC",
+            })}{" "}
+            · {formatTime(meeting.duration)}
+          </p>
+          <div className="meeting-participants">
+            <div className="mini-avatars">
+              {meeting.participants.map((p) => (
+                <span key={p.id} title={p.name} style={{ background: p.color }}>
+                  {p.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
+                </span>
+              ))}
+            </div>
+            <span>{meeting.participants.length} participants</span>
+          </div>
+          <div className="share-row">
+            <button
+              className="share-button"
+              onClick={() => (shared ? copyTranscript() : setSharing(true))}
+            >
+              {shared ? "Copy Transcript" : "Share"}{" "}
+              {shared ? <Copy size={14} /> : <Link2 size={14} />}
+            </button>
+            <div className="more-wrap">
+              <button
+                className="more-button"
+                aria-label="More meeting options"
+                aria-expanded={more}
+                onClick={() => setMore(!more)}
+              >
+                <MoreVertical size={17} />
+              </button>
+              {more && (
+                <div className="meeting-options">
+                  <button onClick={download}>
+                    <Download size={13} /> Download transcript
+                  </button>
+                  <button
+                    onClick={() => {
+                      setTab("transcript");
+                      setMore(false);
+                    }}
+                  >
+                    <ListTodo size={13} /> Open transcript
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="mobile-tabs">
+            <button onClick={() => setShowSidebar(!showSidebar)}>
+              <ListTodo size={13} />
+              {showSidebar ? "Hide" : "Show"} actions & annotations
+            </button>
+          </div>
+          <section className="sidebar-section">
+            <div className="section-label">
+              <h2>ACTION ITEMS</h2>
+              {!shared && (
+                <button
+                  aria-label="Add action item"
+                  onClick={() => setEditor({ kind: "action", time })}
+                >
+                  <Plus size={14} />
+                </button>
+              )}
+            </div>
+            {state.actions.length ? (
+              <div className="action-list">
+                {state.actions.map((a) => (
+                  <div className="action-item" key={a.id}>
+                    <input
+                      type="checkbox"
+                      aria-label={a.text}
+                      checked={a.done}
+                      disabled={shared}
+                      onChange={() =>
+                        save((current) => ({
+                          ...current,
+                          actions: current.actions.map((item) =>
+                            item.id === a.id ? { ...item, done: !item.done } : item,
+                          ),
+                        }))
+                      }
+                    />
+                    <div>
+                      <button
+                        className={`action-text ${a.done ? "done" : ""}`}
+                        title="Go to transcript"
+                        onClick={() => jump(a.time)}
+                      >
+                        {a.text}
+                      </button>
+                      <div className="action-meta">
+                        <button onClick={() => jump(a.time)}>{formatTime(a.time)}</button>
+                        <span>·</span>
+                        {shared ? (
+                          <span>
+                            {meeting.participants.find((p) => p.id === a.assignee)?.name ??
+                              "Unassigned"}
+                          </span>
+                        ) : (
+                          <>
+                            <select
+                              aria-label={`Assign ${a.text}`}
+                              value={a.assignee ?? ""}
+                              onChange={(e) =>
+                                save((current) => ({
+                                  ...current,
+                                  actions: current.actions.map((item) =>
+                                    item.id === a.id
+                                      ? { ...item, assignee: e.target.value || undefined }
+                                      : item,
+                                  ),
+                                }))
+                              }
+                            >
+                              <option value="">Assign</option>
+                              {meeting.participants.map((p) => (
+                                <option key={p.id} value={p.id}>
+                                  {p.name}
+                                </option>
+                              ))}
+                            </select>
+                            <button
+                              aria-label={`Edit ${a.text}`}
+                              onClick={() => setEditor({ kind: "action", time: a.time, item: a })}
+                            >
+                              <Pencil size={10} />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="sidebar-empty">
+                None detected.{" "}
+                {!shared && (
+                  <button onClick={() => setTab("transcript")}>
+                    Add manually on transcript tab.
+                  </button>
+                )}
+              </div>
+            )}
+          </section>
+          <section className="sidebar-section">
+            <div className="section-label">
+              <h2>ANNOTATIONS</h2>
+              <small>
+                <LockKeyhole size={10} /> {shared ? "SHARED DEMO" : "DEMO CONTENT"}
+              </small>
+            </div>
+            {state.highlights.length ? (
+              <div className="annotation-list">
+                {state.highlights.map((h) => (
+                  <div className="annotation-row" key={h.id}>
+                    <button
+                      className={`annotation category-${h.category.toLowerCase().replaceAll(" ", "-")} ${time >= h.time && time < h.end ? "selected" : ""}`}
+                      onClick={() => jump(h.time)}
+                    >
+                      <Diamond size={14} />
+                      <span>
+                        <strong>{h.title}</strong>
+                        <small>· {formatTime(h.end - h.time)}</small>
+                        <p>{h.description}</p>
+                        <span className="category-name">
+                          {h.category} · {formatTime(h.time)}
+                        </span>
+                      </span>
+                    </button>
+                    {!shared && (
+                      <button
+                        className="annotation-link"
+                        aria-label={`Copy timestamp link for ${h.title}`}
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(
+                              `${window.location.origin}/calls/${meeting.id}?t=${h.time}`,
+                            );
+                            notify(
+                              "Workspace timestamp link copied. Use Share for an external viewer.",
+                            );
+                          } catch {
+                            notify("Clipboard unavailable");
+                          }
+                        }}
+                      >
+                        <Link2 size={12} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="sidebar-empty">
+                No annotations yet. {shared ? "" : "Add a highlight from any transcript segment."}
+              </div>
+            )}
+          </section>
+          <p className="sidebar-note">
+            <Video size={12} />
+            {meeting.description}
+            <br />
+            {shared
+              ? "Read-only snapshot · Valid for 24 hours after creation."
+              : "Edits are saved in this browser."}{" "}
+            All people and content are fictional.
+          </p>
+        </aside>
+      </main>
+      {sharing && !shared && (
+        <ShareDialog
+          meeting={meeting}
+          state={state}
+          changeVisibility={(value) => save((current) => ({ ...current, sharing: value }))}
+          close={() => setSharing(false)}
+        />
+      )}
+      {editor && !shared && (
+        <EntryEditor
+          key={`${editor.kind}-${editor.time}-${editor.kind === "action" ? (editor.item?.id ?? "new") : "new"}`}
+          meeting={meeting}
+          editor={editor}
+          close={() => setEditor(null)}
+          saveAction={saveAction}
+          saveHighlight={saveHighlight}
+        />
+      )}
+      {toast && (
+        <div className="toast" role="status">
+          {toast}
+        </div>
+      )}
+    </>
+  );
 }
-
-

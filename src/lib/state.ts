@@ -1,19 +1,66 @@
 import { z } from "zod";
 import { categories, type Meeting } from "./domain";
-export const actionSchema = z.object({ id:z.string().min(1).max(100), text:z.string().trim().min(1,"Add a description").max(300,"Keep action items under 300 characters"), time:z.number().finite().nonnegative(), done:z.boolean(), assignee:z.string().optional() });
-export const highlightSchema = z.object({ id:z.string().min(1).max(100), title:z.string().trim().min(1,"Add a title").max(120), time:z.number().finite().nonnegative(), end:z.number().finite().positive(), category:z.enum(categories), description:z.string().max(600) });
-export const preferencesSchema = z.object({ template:z.enum(["Enhanced","Project Update"]), length:z.enum(["standard","concise"]), focus:z.enum(["all","decisions","actions"]), guidance:z.string().max(1024) });
-export const stateSchema = z.object({ version:z.literal(1), actions:z.array(actionSchema).max(200), highlights:z.array(highlightSchema).max(200), preferences:preferencesSchema, sharing:z.enum(["unlisted","restricted"]).default("unlisted") });
+export const actionSchema = z.object({
+  id: z.string().min(1).max(100),
+  text: z
+    .string()
+    .trim()
+    .min(1, "Add a description")
+    .max(300, "Keep action items under 300 characters"),
+  time: z.number().finite().nonnegative(),
+  done: z.boolean(),
+  assignee: z.string().optional(),
+});
+export const highlightSchema = z.object({
+  id: z.string().min(1).max(100),
+  title: z.string().trim().min(1, "Add a title").max(120),
+  time: z.number().finite().nonnegative(),
+  end: z.number().finite().positive(),
+  category: z.enum(categories),
+  description: z.string().max(600),
+});
+export const preferencesSchema = z.object({
+  template: z.enum(["Enhanced", "Project Update"]),
+  length: z.enum(["standard", "concise"]),
+  focus: z.enum(["all", "decisions", "actions"]),
+  guidance: z.string().max(1024),
+});
+export const stateSchema = z.object({
+  version: z.literal(1),
+  actions: z.array(actionSchema).max(200),
+  highlights: z.array(highlightSchema).max(200),
+  preferences: preferencesSchema,
+  sharing: z.enum(["unlisted", "restricted"]).default("unlisted"),
+});
 export type MeetingState = z.infer<typeof stateSchema>;
 export type SummaryPreferences = z.infer<typeof preferencesSchema>;
-export function defaultState(meeting: Meeting): MeetingState { return { version:1, sharing:"unlisted", actions:meeting.actions, highlights:meeting.highlights, preferences:{template:"Enhanced", length:"standard", focus:"all", guidance:""} }; }
+export function defaultState(meeting: Meeting): MeetingState {
+  return {
+    version: 1,
+    sharing: "unlisted",
+    actions: meeting.actions,
+    highlights: meeting.highlights,
+    preferences: { template: "Enhanced", length: "standard", focus: "all", guidance: "" },
+  };
+}
 export function restoreState(raw: string, meeting: Meeting): MeetingState {
   try {
     const parsed = stateSchema.safeParse(JSON.parse(raw));
-    if(!parsed.success) return defaultState(meeting);
+    if (!parsed.success) return defaultState(meeting);
     const state = parsed.data;
-    if(state.actions.some(a => a.time >= meeting.duration || (a.assignee && !meeting.participants.some(p => p.id === a.assignee))) || state.highlights.some(h => h.time >= meeting.duration || h.end > meeting.duration || h.end <= h.time)) return defaultState(meeting);
+    if (
+      state.actions.some(
+        (a) =>
+          a.time >= meeting.duration ||
+          (a.assignee && !meeting.participants.some((p) => p.id === a.assignee)),
+      ) ||
+      state.highlights.some(
+        (h) => h.time >= meeting.duration || h.end > meeting.duration || h.end <= h.time,
+      )
+    )
+      return defaultState(meeting);
     return state;
-  } catch { return defaultState(meeting); }
+  } catch {
+    return defaultState(meeting);
+  }
 }
-
