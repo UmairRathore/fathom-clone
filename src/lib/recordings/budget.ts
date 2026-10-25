@@ -1,6 +1,7 @@
 import type { Pool } from "pg";
 import { createOpenAIProvider, type AIProvider } from "./ai";
 import { ProcessingError } from "./schema";
+import { budgetRecordingApproved } from "./approval";
 export async function reserveAIRequest(
   pool: Pool,
   id: string,
@@ -16,7 +17,7 @@ export async function reserveAIRequest(
     const budget = result.rows[0];
     if (
       !budget ||
-      budget.approved_recording_id !== id ||
+      !budgetRecordingApproved(id, budget.approved_recording_id) ||
       budget.reserved_cents + 20 > budget.authorized_cents
     )
       throw new ProcessingError("spending_approval_required");

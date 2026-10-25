@@ -8,17 +8,17 @@ The complete application, including disposable authentication, is publicly deplo
 
 ## Product capabilities and boundaries
 
-| Capability             | Implemented behavior                                                                                                     | Deliberate boundary                                                                             |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
-| Accounts               | Name-only registration, creation-only generated credentials, login/logout, persistent private workspace, profile editing | Fixed 24-hour lifetime; no email verification, password recovery or OAuth                       |
-| Public demo            | Immediate entry without credentials; isolated visitor changes                                                            | Fictional seed content; logout/reentry starts a fresh visitor workspace                         |
-| Library and transcript | Cross-meeting search, filters, timestamp seeking, active transcript tracking, readable groups, copy/download             | Recognized speaker labels are not verified identities                                           |
-| Playback               | Real audio playback and seeking; owner-authorized private recordings                                                     | Launch fixture uses synthesized speech; transcript-only fixtures have no playback               |
-| Insights               | Summary templates, evidence-linked actions, highlights and annotations                                                   | Fixture summaries are deterministic; Ask is seeded/keyword lookup, not a general AI assistant   |
-| Capture journey        | Calendar/notetaker/admission simulation, pause/resume, live highlights, processing-to-insights flow                      | No real calendar permissions, conferencing bot or microphone recording                          |
-| Clips                  | Fractional ranges, preview, saved clips, standalone WAV excerpts, anonymous expiring/revocable links                     | Audio-only export, maximum 120 seconds; transcript-only clips have no audio                     |
-| Long meetings          | Virtualized 60-minute, eight-speaker, 240-segment fixture; responsive independently scrolling panels                     | A synthetic transcript usability test, not an hour-long recording or transcription benchmark    |
-| Real AI processing     | Private upload, transcription, structured analysis, stored results and synchronized original playback                    | Explicitly approved recordings and server budget gates only; not open-ended public API spending |
+| Capability             | Implemented behavior                                                                                                     | Deliberate boundary                                                                                       |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| Accounts               | Name-only registration, creation-only generated credentials, login/logout, persistent private workspace, profile editing | Fixed 24-hour lifetime; no email verification, password recovery or OAuth                                 |
+| Public demo            | Immediate entry without credentials; isolated visitor changes                                                            | Fictional seed content; logout/reentry starts a fresh visitor workspace                                   |
+| Library and transcript | Cross-meeting search, filters, timestamp seeking, active transcript tracking, readable groups, copy/download             | Recognized speaker labels are not verified identities                                                     |
+| Playback               | Real audio playback and seeking; owner-authorized private recordings                                                     | Launch fixture uses synthesized speech; transcript-only fixtures have no playback                         |
+| Insights               | Summary templates, evidence-linked actions, highlights and annotations                                                   | Fixture summaries are deterministic; Ask is seeded/keyword lookup, not a general AI assistant             |
+| Capture journey        | Calendar/notetaker/admission simulation, pause/resume, live highlights, processing-to-insights flow                      | No real calendar permissions, conferencing bot or microphone recording                                    |
+| Clips                  | Fractional ranges, preview, saved clips, standalone WAV excerpts, anonymous expiring/revocable links                     | Audio-only export, maximum 120 seconds; transcript-only clips have no audio                               |
+| Long meetings          | Virtualized 60-minute, eight-speaker, 240-segment fixture; responsive independently scrolling panels                     | A synthetic transcript usability test, not an hour-long recording or transcription benchmark              |
+| Real AI processing     | Private upload, transcription, structured analysis, stored results and synchronized original playback                    | Time-limited registered-account access and shared server budget gates; not open-ended public API spending |
 
 The launch review contains 106.1 seconds of locally synthesized speech, four scripted participants and eight transcript turns. The hour-long planning meeting and two other meetings are transcript-only. Illustrative participant tiles are not video. Private real recordings are accessible only to their owners and are not evaluator fixtures.
 
@@ -37,7 +37,7 @@ A modular Next.js 16 App Router application with React 19, strict TypeScript, Ta
 - `src/lib/workspace-store.ts`: scoped persistence and revision conflict checks.
 - `src/lib/recordings/`: private media, processing, budget controls and clip preparation.
 - `src/components/workspace-provider.tsx`: account/session-scoped client state and save feedback.
-- `migrations/`: core authentication schema and application migrations through 007.
+- `migrations/`: core authentication schema and application migrations through 008.
 - `scripts/`, `tests/`: maintenance, fixture tests and HTTP/security checks.
 
 Production and the protected preview currently use the same verified Neon database and private Blob store. This is an assessment deployment, not separate production/staging data infrastructure. Ownership and session checks isolate workspaces within that store. Use a separate local database for development and destructive tests.
@@ -46,7 +46,7 @@ Production and the protected preview currently use the same verified Neon databa
 
 [Upload Recording](https://fathom-clone-three.vercel.app/upload) requires a private account. Accepted formats are MP4/WebM with audio and MP3/M4A/WAV, up to **five minutes and 24 MB**. Demo visitors cannot upload private recordings or consume AI credits. There is no general server-side video transcoding or live meeting capture.
 
-An OpenAI key alone does not authorize processing. Server feature flags, an approved recording ID, database budget reservations and idempotency controls gate billable work. Arbitrary evaluator uploads are not automatically approved for paid processing. The fictional demo needs no external AI calls.
+An OpenAI key alone does not authorize processing. Server feature flags, a UTC approval deadline (or the legacy single-recording allowlist), shared database budget reservations and idempotency controls gate billable work. Registered accounts can process uploads through November 25, 2026 (23:59 UTC), subject to a US$2 lifetime shared reservation ceiling including previous reservations. After the deadline, new billable requests are denied; stored results remain accessible subject to account expiration. The fictional demo needs no external AI calls.
 
 One authorized 267.833-second recording previously completed real upload → transcription → analysis → persisted meeting → playback. Its 56 saved segments demonstrate persistence coverage, not independently established recognition accuracy. Single-voice diarization and technical-word accuracy remain limitations; no word-error-rate improvement is claimed. Private media, transcripts and bearer links are withheld from public Git. See [processing evidence](docs/REAL-AI-PROCESSING.md) and [recognition audit](docs/RECOGNITION-ACCURACY-AUDIT.md).
 
@@ -92,20 +92,21 @@ For an independently configured PostgreSQL environment, use `npm start -- --port
 
 Never commit real values. `.env.local`, generated local credentials, media and deployment state are ignored. Hosted values belong in private Vercel environment configuration.
 
-| Variable                                            | Purpose                                                                                           |
-| --------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`                                      | PostgreSQL connection; isolated development database locally                                      |
-| `BETTER_AUTH_SECRET`                                | High-entropy session/authentication secret                                                        |
-| `BETTER_AUTH_URL`                                   | Exact application origin; public production uses the live URL above                               |
-| `DEMO_EMAIL`, `DEMO_PASSWORD`                       | Server-side demo seed identity/credential; visitors use the demo button                           |
-| `SHARE_SECRET`                                      | Share capability protection; preserve across releases to retain valid links                       |
-| `BLOB_READ_WRITE_TOKEN`                             | Private recording/derived media store; required for cloud uploads                                 |
-| `CLIP_SHARE_ORIGIN`                                 | Public clip-only viewer origin; production uses `https://sounding-clips-umair-rathore.vercel.app` |
-| `OPENAI_API_KEY`                                    | Server API key; never a `NEXT_PUBLIC_` variable                                                   |
-| `TRANSCRIPTION_MODEL`                               | Approved model configuration, currently `gpt-4o-transcribe-diarize`                               |
-| `TRANSCRIPTION_LANGUAGE`                            | Optional supported language hint                                                                  |
-| `AI_PROCESSING_ENABLED`, `AI_APPROVED_RECORDING_ID` | Explicit processing gate and recording allowlist; keep disabled for ordinary local/evaluator use  |
-| `TEMPORARY_CLEANUP_SECRET`                          | Local operator configuration for the separate cleanup deployment                                  |
+| Variable                                            | Purpose                                                                                                          |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                                      | PostgreSQL connection; isolated development database locally                                                     |
+| `BETTER_AUTH_SECRET`                                | High-entropy session/authentication secret                                                                       |
+| `BETTER_AUTH_URL`                                   | Exact application origin; public production uses the live URL above                                              |
+| `DEMO_EMAIL`, `DEMO_PASSWORD`                       | Server-side demo seed identity/credential; visitors use the demo button                                          |
+| `SHARE_SECRET`                                      | Share capability protection; preserve across releases to retain valid links                                      |
+| `BLOB_READ_WRITE_TOKEN`                             | Private recording/derived media store; required for cloud uploads                                                |
+| `CLIP_SHARE_ORIGIN`                                 | Public clip-only viewer origin; production uses `https://sounding-clips-umair-rathore.vercel.app`                |
+| `OPENAI_API_KEY`                                    | Server API key; never a `NEXT_PUBLIC_` variable                                                                  |
+| `TRANSCRIPTION_MODEL`                               | Approved model configuration, currently `gpt-4o-transcribe-diarize`                                              |
+| `TRANSCRIPTION_LANGUAGE`                            | Optional supported language hint                                                                                 |
+| `AI_PROCESSING_ENABLED`, `AI_APPROVED_RECORDING_ID` | Processing feature flag and legacy recording allowlist                                                           |
+| `AI_PROCESSING_UNTIL`                               | Optional exclusive UTC deadline; production uses `2026-11-26T00:00:00.000Z`. Shared DB budget remains mandatory. |
+| `TEMPORARY_CLEANUP_SECRET`                          | Local operator configuration for the separate cleanup deployment                                                 |
 
 The cleanup-only project uses private `DATABASE_URL`, `BLOB_READ_WRITE_TOKEN` and `CRON_SECRET`. It is not the main app. Database budget authorization is additional to environment configuration. OAuth/SMTP/Resend credentials are not required or used by the current disposable-account flow; historical email flags do not enable it.
 

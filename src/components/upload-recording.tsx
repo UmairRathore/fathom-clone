@@ -33,7 +33,7 @@ const messages: Record<string, string> = {
   invalid_media: "This recording is corrupt or unsupported.",
   size_mismatch: "The uploaded size did not match. Delete this attempt and upload again.",
   spending_approval_required:
-    "Live AI processing is limited to the specifically approved recording and budget.",
+    "Live AI processing is unavailable: its approval window has closed or the shared budget is exhausted.",
   user_upload_limit: "The limit is three upload attempts per account in 24 hours.",
   provider_limit:
     "OpenAI rejected this request due to its usage limit. No automatic retry will run.",
@@ -390,7 +390,7 @@ export function UploadRecording() {
                       <p>
                         {canProcess
                           ? "Transcription and analysis use paid APIs within the approved test budget."
-                          : "This upload is saved. Live processing requires administrator approval for this recording and budget."}
+                          : "This upload is saved. Live AI processing is not currently enabled for it."}
                       </p>
                     </>
                   )}

@@ -5,6 +5,7 @@ import { recordingActor, recordingError, responseOptions } from "@/lib/recording
 import { readRecording } from "@/lib/recordings/storage";
 import { createBudgetedProvider } from "@/lib/recordings/budget";
 import { ProcessingError } from "@/lib/recordings/schema";
+import { processingApproved } from "@/lib/recordings/approval";
 export const runtime = "nodejs";
 export const maxDuration = 300;
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -15,8 +16,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const prior = await getRecording(getPool(), owner, id);
     if (!prior) throw new ProcessingError("not_found");
     if (prior.status === "ready") return Response.json({ job: jobView(prior) }, responseOptions);
-    if (process.env.AI_PROCESSING_ENABLED !== "true" || process.env.AI_APPROVED_RECORDING_ID !== id)
-      throw new ProcessingError("spending_approval_required");
+    if (!processingApproved(id)) throw new ProcessingError("spending_approval_required");
     const key = process.env.OPENAI_API_KEY;
     if (!key) throw new ProcessingError("ai_not_configured");
     const job = await processRecording(

@@ -62,7 +62,7 @@ This fixture has **no audio or video**. Playback is disabled deliberately. It de
 
 **Upload Recording** is available to private accounts through My Calls/navigation. Public demo sessions cannot use it. Supported inputs are MP4/WebM with audio and MP3/M4A/WAV, limited to five minutes and 24 MB. Cloud storage and processing require server configuration.
 
-Billable OpenAI processing is restricted to an explicitly approved recording and database budget authorization. Uploading an arbitrary file or having an API key does not grant permission to spend credits. Evaluators should use the ready fictional demo for the complete product walkthrough. No additional paid request is required to assess it.
+Billable OpenAI processing is temporarily enabled for registered private accounts through November 25, 2026 (23:59 UTC), subject to a US$2 shared lifetime reservation ceiling including previous reservations. Uploads remain limited to five minutes and 24 MB. Processing starts only when you click Process recording; demo visitors cannot spend API credits. New billable requests are denied after the deadline or budget exhaustion. The ready fictional demo needs no paid requests.
 
 The authorized development recording completed genuine transcription, structured analysis and original playback. Recognition accuracy has separate limitations: saved segment coverage does not prove every word is correct, anonymous diarization is not identity verification, and technical-word recognition is imperfect. No private transcript or recording is included in this guide. See [processing evidence](REAL-AI-PROCESSING.md) and [recognition review](RECOGNITION-ACCURACY-AUDIT.md).
 

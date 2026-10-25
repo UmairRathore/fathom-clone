@@ -93,7 +93,7 @@ test("database-backed authentication and owner isolation", async (t) => {
     await t.test("schema migration is repeatable", async () => {
       await migrate(pool);
       const q = await pool.query("SELECT count(*)::int AS count FROM sounding_migration");
-      assert.ok(q.rows[0].count === 6);
+      assert.ok(q.rows[0].count === 7);
     });
     await t.test(
       "no-mail configuration rejects signup without creating an inactive account",

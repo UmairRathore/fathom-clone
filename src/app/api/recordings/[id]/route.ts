@@ -4,6 +4,7 @@ import { getRecording, cancelRecording, jobView } from "@/lib/recordings/jobs";
 import { recordingActor, recordingError, responseOptions } from "@/lib/recordings/server";
 import { deleteRecording } from "@/lib/recordings/storage";
 import { ProcessingError } from "@/lib/recordings/schema";
+import { processingApproved } from "@/lib/recordings/approval";
 type Context = { params: Promise<{ id: string }> };
 export async function GET(request: Request, context: Context) {
   try {
@@ -13,9 +14,7 @@ export async function GET(request: Request, context: Context) {
     return Response.json(
       {
         job: jobView(job),
-        canProcess:
-          process.env.AI_PROCESSING_ENABLED === "true" &&
-          process.env.AI_APPROVED_RECORDING_ID === job.id,
+        canProcess: processingApproved(job.id),
       },
       responseOptions,
     );
