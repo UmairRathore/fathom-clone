@@ -2511,11 +2511,26 @@ button:hover {
 .transcript-navigation select {
   max-width: 180px;
 }
-.journey-entry {
-  display: inline-block;
-  color: #5dd6ff;
+.library-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
   margin: 10px 0;
-  font-size: 13px;
+}
+.library-actions > a {
+  min-height: 40px;
+  padding: 9px 15px;
+  justify-content: center;
+  font-weight: 600;
+}
+.library-actions .secondary-button {
+  color: var(--cyan);
+  border-color: #36545e;
+  background: #092a34;
+}
+.library-actions .secondary-button:hover {
+  background: #123d49;
+  border-color: var(--cyan);
 }
 .saved-clip {
   display: flex;

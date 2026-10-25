@@ -90,12 +90,14 @@ export function Dashboard() {
           <div className="library-heading">
             <div>
               <h1>My Calls</h1>
-              <Link className="primary-button" href="/upload">
-                Upload Recording
-              </Link>
-              <Link className="journey-entry" href="/capture">
-                Start recording simulation →
-              </Link>
+              <div className="library-actions">
+                <Link className="primary-button" href="/upload">
+                  Upload Recording
+                </Link>
+                <Link className="secondary-button" href="/capture">
+                  Start recording simulation
+                </Link>
+              </div>
               <p>Your conversations. All in one place.</p>
             </div>
             <span className="demo-label">
