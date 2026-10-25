@@ -1,5 +1,7 @@
 # Authentication verification evidence
 
+> **Historical milestone report.** The complete application was publicly released from `98d7a46` on 2026-10-25. Earlier preview-only, deployment, authentication and test-count statements below describe that milestone. Use the [current README](../README.md) and [assessment guide](ASSESSMENT-GUIDE.md) for present behavior; the original report body is retained as evidence.
+
 ## Stage 1: reference evidence
 
 17 actual Fathom screenshots were captured and reviewed before application implementation. They are under recon/auth/screenshots/ and ignored by Git. Six structured research documents record screen inventory, screenshot mapping, verified transitions, design measurements, validation/error behavior and the Sounding implementation map. No account identifiers, passwords, OTPs, recovery URLs or OAuth query strings were saved in screenshots. Some screenshots are explicitly cropped; the account-menu crop clips left text and excludes its account footer.

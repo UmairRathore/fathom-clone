@@ -1,5 +1,7 @@
 # Disposable authentication release
 
+> **Historical milestone report.** The complete application was publicly released from `98d7a46` on 2026-10-25. Earlier preview-only, deployment, authentication and test-count statements below describe that milestone. Use the [current README](../README.md) and [assessment guide](ASSESSMENT-GUIDE.md) for present behavior; the original report body is retained as evidence.
+
 Sounding reuses Better Auth, Neon and the existing private-workspace model. Public account creation asks only for a name. It creates a synthetic `demo-<random>@sounding.local` login ID, a cryptographically random 192-bit password, an isolated workspace and an authenticated session. This identifier is not a mailbox. Its internal `emailVerified` flag does not claim real email verification.
 
 The initial welcome screen holds credentials only in React memory. Users can reveal/copy the password or explicitly download a private credentials file. Continuing, navigating away or reloading clears that screen. Only Better Auth's salted scrypt hash is persisted. Profile pages retain the login ID and exact account deadline, never a retrievable password. Losing credentials requires a new account. Browser clipboard/downloads are user-controlled copies and must be kept private.

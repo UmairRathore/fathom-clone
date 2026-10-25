@@ -1,5 +1,7 @@
 # Sounding authentication preview
 
+> **Historical milestone report.** The complete application was publicly released from `98d7a46` on 2026-10-25. Earlier preview-only, deployment, authentication and test-count statements below describe that milestone. Use the [current README](../README.md) and [assessment guide](ASSESSMENT-GUIDE.md) for present behavior; the original report body is retained as evidence.
+
 This branch adds real authentication and PostgreSQL persistence without replacing the original production deployment at https://fathom-clone-three.vercel.app.
 
 ## Run locally

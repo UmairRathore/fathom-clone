@@ -1,5 +1,7 @@
 # Sounding release-candidate functionality audit
 
+> **Historical milestone report.** The complete application was publicly released from `98d7a46` on 2026-10-25. Earlier preview-only, deployment, authentication and test-count statements below describe that milestone. Use the [current README](../README.md) and [assessment guide](ASSESSMENT-GUIDE.md) for present behavior; the original report body is retained as evidence.
+
 Date: 2026-10-25 (Asia/Karachi).
 Branch: `codex/authentication-preview`.
 Protected preview: https://sounding-preview-umair-rathore.vercel.app

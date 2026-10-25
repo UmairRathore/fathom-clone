@@ -1,5 +1,7 @@
 # Assessment journey audit
 
+> **Historical milestone report.** The complete application was publicly released from `98d7a46` on 2026-10-25. Earlier preview-only, deployment, authentication and test-count statements below describe that milestone. Use the [current README](../README.md) and [assessment guide](ASSESSMENT-GUIDE.md) for present behavior; the original report body is retained as evidence.
+
 Audited 2026-10-25 on `codex/authentication-preview`, starting at cc96f68, against the exact requirement:
 
 > Connect a calendar, get the notetaker into a real meeting, let it record, watch playback against the transcript, read the AI summary, switch templates, pull action items, highlight a moment mid-call, search across meetings, share a clip externally, and test an eight-person hour-long meeting.

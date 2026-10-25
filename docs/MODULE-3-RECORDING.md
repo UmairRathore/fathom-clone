@@ -1,5 +1,7 @@
 # Module 3 — Recording simulation and live highlights
 
+> **Historical milestone report.** The complete application was publicly released from `98d7a46` on 2026-10-25. Earlier preview-only, deployment, authentication and test-count statements below describe that milestone. Use the [current README](../README.md) and [assessment guide](ASSESSMENT-GUIDE.md) for present behavior; the original report body is retained as evidence.
+
 ## Delivered scope
 
 The existing `/capture` route, seeded meetings, workspace save queue, meeting detail, manual highlight schema and Module 2 clip editor are reused. My Calls links directly to **Start recording simulation**. No database migration, new service, meeting bot or transcription system is introduced.

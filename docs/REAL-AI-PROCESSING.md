@@ -1,5 +1,7 @@
 # Module 1 — real recording processing
 
+> **Historical milestone report.** The complete application was publicly released from `98d7a46` on 2026-10-25. Earlier preview-only, deployment, authentication and test-count statements below describe that milestone. Use the [current README](../README.md) and [assessment guide](ASSESSMENT-GUIDE.md) for present behavior; the original report body is retained as evidence.
+
 Implemented on `codex/authentication-preview`, based on a4912b9 (the latest authentication, recording-stub and clip work). Original production and `main` remain unchanged. This module adds real uploads and AI processing; it does not add calendar permissions, bots, OAuth configuration, email delivery, recording capture, or new clip features.
 
 ## Verified real test

@@ -1,5 +1,7 @@
 # Module 1 transcript quality diagnosis
 
+> **Historical milestone report.** The complete application was publicly released from `98d7a46` on 2026-10-25. Earlier preview-only, deployment, authentication and test-count statements below describe that milestone. Use the [current README](../README.md) and [assessment guide](ASSESSMENT-GUIDE.md) for present behavior; the original report body is retained as evidence.
+
 ## Root cause and evidence
 
 The apparent final-25-second transcript is a **rendering/windowing problem**, not a shortened media submission or a truncated Neon meeting. The old UI rendered one large card per short provider segment and virtualized every recording. At the end it mounted only the final eight segments; selecting that visible page text also captured tool labels. Its Copy Transcript implementation already used all saved segments rather than the DOM, but this distinction was not clear in the UI.

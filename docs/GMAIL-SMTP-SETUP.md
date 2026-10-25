@@ -1,5 +1,7 @@
 # Gmail SMTP setup — pending account-owner authorization
 
+> **Historical milestone report.** The complete application was publicly released from `98d7a46` on 2026-10-25. Earlier preview-only, deployment, authentication and test-count statements below describe that milestone. Use the [current README](../README.md) and [assessment guide](ASSESSMENT-GUIDE.md) for present behavior; the original report body is retained as evidence.
+
 The optional Nodemailer adapter uses the existing Better Auth verification/reset callbacks and Neon records. Gmail is selected with `AUTH_EMAIL_PROVIDER=gmail`; legacy Resend configuration remains compatible. SMTP is fixed to `smtp.gmail.com`, port 465, implicit TLS, certificate validation and TLS 1.2 or newer. Protocol logging is disabled, timeouts are bounded, and provider errors are replaced with generic messages. Email text contains the existing Better Auth link; it is never logged.
 
 Google account inspection confirmed that two-step verification was off. The owner completed Google's password challenge, but Google still showed **Turn on 2-Step Verification**. Gmail app passwords require two-step verification; the normal Google account password is not a supported substitute. No app password has been created, collected or transferred.

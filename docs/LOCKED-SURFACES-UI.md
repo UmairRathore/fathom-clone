@@ -1,5 +1,7 @@
 # Locked product surfaces — UI polish
 
+> **Historical milestone report.** The complete application was publicly released from `98d7a46` on 2026-10-25. Earlier preview-only, deployment, authentication and test-count statements below describe that milestone. Use the [current README](../README.md) and [assessment guide](ASSESSMENT-GUIDE.md) for present behavior; the original report body is retained as evidence.
+
 This release adds presentation and limited local interaction around Sounding's existing core product. It does not add backend integrations, billing, team collaboration, CRM synchronization, playlists, support delivery, API keys or account deletion.
 
 ## Reference review

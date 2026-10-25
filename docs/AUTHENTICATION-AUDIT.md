@@ -1,5 +1,7 @@
 # Authentication audit — 25 October 2026
 
+> **Historical milestone report.** The complete application was publicly released from `98d7a46` on 2026-10-25. Earlier preview-only, deployment, authentication and test-count statements below describe that milestone. Use the [current README](../README.md) and [assessment guide](ASSESSMENT-GUIDE.md) for present behavior; the original report body is retained as evidence.
+
 ## Decision and evaluator access
 
 **A brand-new visitor cannot currently register a private account.** Email verification is required, but the tested delivery service is not configured. Both UI and server reject new signup; the server creates no stranded inactive account. Existing verified private accounts can log in. Required verification has not been bypassed.

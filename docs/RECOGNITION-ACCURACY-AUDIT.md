@@ -1,5 +1,7 @@
 # Recognition and extraction audit — 2026-10-24 UTC
 
+> **Historical milestone report.** The complete application was publicly released from `98d7a46` on 2026-10-25. Earlier preview-only, deployment, authentication and test-count statements below describe that milestone. Use the [current README](../README.md) and [assessment guide](ASSESSMENT-GUIDE.md) for present behavior; the original report body is retained as evidence.
+
 This review concerns recognized speech, separately from the previous transcript-windowing fix. No additional paid API requests were made. Private reference text, original media, transcript, credentials and media URLs are excluded from this report and from commits.
 
 | Finding                                                      | Severity                                              | Evidence and limitation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |

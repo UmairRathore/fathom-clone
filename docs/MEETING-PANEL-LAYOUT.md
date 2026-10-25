@@ -1,5 +1,7 @@
 # Meeting detail panel layout verification
 
+> **Historical milestone report.** The complete application was publicly released from `98d7a46` on 2026-10-25. Earlier preview-only, deployment, authentication and test-count statements below describe that milestone. Use the [current README](../README.md) and [assessment guide](ASSESSMENT-GUIDE.md) for present behavior; the original report body is retained as evidence.
+
 Verified 2026-10-25 using fictional demo meetings in an isolated local demo workspace.
 
 ## Change

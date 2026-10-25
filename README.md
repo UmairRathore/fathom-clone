@@ -1,39 +1,75 @@
-# Sounding · Your meetings, remembered
+# Sounding — Your meetings, remembered
 
-An independent Fathom-inspired assessment project for reviewing recordings, searching transcripts and turning conversations into decisions. All sample people, meetings and content are fictional. Sounding is not affiliated with Fathom.
+A Fathom-inspired product engineering assessment: review recordings alongside transcripts, find decisions, track actions, highlight moments and share focused clips. Sounding is independent of Fathom. Public sample meetings and participants are fictional.
 
-- **Original public demo:** [fathom-clone-three.vercel.app](https://fathom-clone-three.vercel.app)
-- **Authentication preview:** [sounding-preview-umair-rathore.vercel.app](https://sounding-preview-umair-rathore.vercel.app)
-- **Source:** [UmairRathore/fathom-clone](https://github.com/UmairRathore/fathom-clone)
-- **Auth branch:** `codex/authentication-preview`
+**[Open the live application](https://fathom-clone-three.vercel.app)** · **[Evaluator guide](docs/ASSESSMENT-GUIDE.md)** · **[Submission and capture audit](docs/SUBMISSION-AUDIT.md)**
 
-The original production deployment remains unchanged. Authentication changes are isolated to the preview and its dedicated Neon Free Plan database. Vercel Deployment Protection remains enabled; the preview requires authorized Vercel access. Once admitted, “Try the public demo” creates an isolated Sounding visitor workspace.
+The complete application, including disposable authentication, is publicly deployed on Vercel Hobby. No Vercel login is required at the production URL. Development previews remain protected. The verified application revision is [`98d7a46`](https://github.com/UmairRathore/fathom-clone/commit/98d7a46ce5544a582f5c2d6c7c80e2e4a5cc3470); subsequent documentation commits do not change the deployed application.
 
-## What works
+## Product capabilities and boundaries
 
-- Responsive meeting library with date groups, filters and search across titles, people, summaries and transcript content.
-- Real playback of a locally generated 106.1-second fictional spoken recording; seekable transcript, speaker filters, active-segment tracking, playback speed, mute and fullscreen.
-- Eight-speaker, one-hour transcript fixture with 240 segments and virtualized rows. It intentionally has no recording; playback is disabled.
-- Distinct Enhanced and Project Update summaries, concise/full and focus options, timestamp citations and deterministic seeded Ask responses.
-- Editable/assignable/completable action items; categorized highlights; timestamp links; transcript copy/download.
-- Name-only 24-hour temporary accounts, one-time generated credentials, real credential login/logout, absolute expiry and private profile-name management.
-- Private account workspaces persisted in PostgreSQL; separate demo changes per sign-in session; explicit save status and revision conflict handling.
-- Encrypted immutable 24-hour read-only share snapshots. Creating links requires an owner session; reading links requires no Sounding session. Preview platform protection still applies.
+| Capability             | Implemented behavior                                                                                                     | Deliberate boundary                                                                             |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| Accounts               | Name-only registration, creation-only generated credentials, login/logout, persistent private workspace, profile editing | Fixed 24-hour lifetime; no email verification, password recovery or OAuth                       |
+| Public demo            | Immediate entry without credentials; isolated visitor changes                                                            | Fictional seed content; logout/reentry starts a fresh visitor workspace                         |
+| Library and transcript | Cross-meeting search, filters, timestamp seeking, active transcript tracking, readable groups, copy/download             | Recognized speaker labels are not verified identities                                           |
+| Playback               | Real audio playback and seeking; owner-authorized private recordings                                                     | Launch fixture uses synthesized speech; transcript-only fixtures have no playback               |
+| Insights               | Summary templates, evidence-linked actions, highlights and annotations                                                   | Fixture summaries are deterministic; Ask is seeded/keyword lookup, not a general AI assistant   |
+| Capture journey        | Calendar/notetaker/admission simulation, pause/resume, live highlights, processing-to-insights flow                      | No real calendar permissions, conferencing bot or microphone recording                          |
+| Clips                  | Fractional ranges, preview, saved clips, standalone WAV excerpts, anonymous expiring/revocable links                     | Audio-only export, maximum 120 seconds; transcript-only clips have no audio                     |
+| Long meetings          | Virtualized 60-minute, eight-speaker, 240-segment fixture; responsive independently scrolling panels                     | A synthetic transcript usability test, not an hour-long recording or transcription benchmark    |
+| Real AI processing     | Private upload, transcription, structured analysis, stored results and synchronized original playback                    | Explicitly approved recordings and server budget gates only; not open-ended public API spending |
 
-Create account asks only for a name. Save the generated login ID/password once; the ID stays visible in Your account, while the password cannot be retrieved. No mailbox, OAuth, SMTP or email recovery is used. The public demo remains a separate option. Temporary access ends at the original 24-hour deadline. The separate secret-protected cleanup job is scheduled daily for 00:17 UTC (05:17 Pakistan time); free-tier execution may occur within that hour or be delayed. It uses durable retries and a 15-minute minimum grace period before physical deletion. See [disposable authentication](docs/DISPOSABLE-AUTHENTICATION.md).
+The launch review contains 106.1 seconds of locally synthesized speech, four scripted participants and eight transcript turns. The hour-long planning meeting and two other meetings are transcript-only. Illustrative participant tiles are not video. Private real recordings are accessible only to their owners and are not evaluator fixtures.
 
-## Quick start
+## Try it
 
-Node.js 24.x is required. Dependencies are pinned by package-lock.json.
+Choose **Try Public Demo** on the [sign-in page](https://fathom-clone-three.vercel.app/users/sign_in), or create a name-only account. Save its generated login ID and password privately before leaving the welcome screen. The login ID remains in your profile; the password is shown only at creation and cannot be recovered. Account access ends exactly 24 hours after creation, including after a new login.
+
+Follow the [assessment guide](docs/ASSESSMENT-GUIDE.md) for onboarding, clips, recording simulation and a five-minute walkthrough. Unavailable provider, paid and team integrations are visibly disabled.
+
+## Architecture
+
+A modular Next.js 16 App Router application with React 19, strict TypeScript, Tailwind 4/CSS, Lucide icons, TanStack Virtual and Zod. Better Auth handles credential hashing and server-side sessions. PostgreSQL access uses `pg` and versioned SQL migrations, hosted on Neon. Recordings and derived clips use private Vercel Blob storage; server-side FFmpeg prepares audio. OpenAI transcription and structured analysis run only through guarded server code.
+
+- `src/app/`: pages, server authorization and HTTP handlers.
+- `src/lib/auth-config.ts`, `src/lib/temporary-accounts.ts`: authentication, temporary identities and absolute expiry.
+- `src/lib/workspace-store.ts`: scoped persistence and revision conflict checks.
+- `src/lib/recordings/`: private media, processing, budget controls and clip preparation.
+- `src/components/workspace-provider.tsx`: account/session-scoped client state and save feedback.
+- `migrations/`: core authentication schema and application migrations through 007.
+- `scripts/`, `tests/`: maintenance, fixture tests and HTTP/security checks.
+
+Production and the protected preview currently use the same verified Neon database and private Blob store. This is an assessment deployment, not separate production/staging data infrastructure. Ownership and session checks isolate workspaces within that store. Use a separate local database for development and destructive tests.
+
+## Recording upload and AI limits
+
+[Upload Recording](https://fathom-clone-three.vercel.app/upload) requires a private account. Accepted formats are MP4/WebM with audio and MP3/M4A/WAV, up to **five minutes and 24 MB**. Demo visitors cannot upload private recordings or consume AI credits. There is no general server-side video transcoding or live meeting capture.
+
+An OpenAI key alone does not authorize processing. Server feature flags, an approved recording ID, database budget reservations and idempotency controls gate billable work. Arbitrary evaluator uploads are not automatically approved for paid processing. The fictional demo needs no external AI calls.
+
+One authorized 267.833-second recording previously completed real upload → transcription → analysis → persisted meeting → playback. Its 56 saved segments demonstrate persistence coverage, not independently established recognition accuracy. Single-voice diarization and technical-word accuracy remain limitations; no word-error-rate improvement is claimed. Private media, transcripts and bearer links are withheld from public Git. See [processing evidence](docs/REAL-AI-PROCESSING.md) and [recognition audit](docs/RECOGNITION-ACCURACY-AUDIT.md).
+
+## Security and retention
+
+Private pages and APIs enforce authenticated ownership; demo mutations are scoped to the visitor session. Passwords are salted scrypt hashes. Production session cookies use Secure, HttpOnly and SameSite attributes. Logout revokes the server session. CSRF, credential rate limits, registration quotas, redirect validation and expired-session rejection have regression coverage.
+
+Sharing is explicit. New clip links are opaque, revocable and expire within 24 hours, capped by account expiry. Changing/deleting a clip invalidates its link. Guests receive the selected excerpt and contained transcript utterances, not the complete private source. Whole-meeting sharing is limited to fictional fixtures. Already downloaded/buffered bytes cannot be recalled. Do not publish generated credentials or live share links in an assessment recording or repository.
+
+The separate `sounding-preview-cleanup` project retains its secret-protected daily `17 0 * * *` job (00:17 UTC nominally). It targets the same database/storage, with a minimum 15-minute grace period and durable retries. Hobby scheduling and service failures can delay physical deletion; access expiry is enforced independently at the fixed deadline. See [authentication and cleanup design](docs/DISPOSABLE-AUTHENTICATION.md).
+
+## Local development
+
+Use **Node.js 24.x** and the pinned lockfile:
 
 ```sh
 npm ci
 npm run dev:auth
 ```
 
-Open http://localhost:3002. This starts a local PostgreSQL engine and app without needing hosted credentials. Generated keys and database files are ignored by Git. It is a local development option only.
+Open [localhost:3002](http://localhost:3002). This starts persistent local PGlite PostgreSQL and the application, creates ignored development credentials, and runs migrations/seeding against the local database. It requires no hosted database credentials. Do not copy production secrets into a local checkout. Optional cloud upload/AI functionality requires separate server configuration; the seeded demo works without it.
 
-With a configured dedicated PostgreSQL connection in ignored .env.local:
+For your own isolated PostgreSQL database, create an ignored `.env.local` using the variable names below, then:
 
 ```sh
 node scripts/setup-auth-env.mjs
@@ -41,92 +77,72 @@ npm run db:migrate
 npm run dev -- --port 3002
 ```
 
-The setup helper preserves existing secrets and defaults BETTER_AUTH_URL to http://localhost:3002. Use the one-click demo to enter without disclosing a password. DEMO_EMAIL and DEMO_PASSWORD also support actual credential login; the configured password is kept server-side and out of public Git history.
+The setup helper preserves existing values and generates missing local authentication secrets. Migration/seeding writes to `DATABASE_URL`; confirm it is your development database before running. Set `BETTER_AUTH_URL` to the exact local origin.
 
-For a production build:
+To run a built application with the same local database helper:
 
 ```sh
 npm run build
-npm start -- --port 3002
+npm run dev:auth -- --production
 ```
 
-See [disposable authentication](docs/DISPOSABLE-AUTHENTICATION.md) for current architecture, expiry, cleanup and maintenance. Older email/OAuth audit documents record superseded proposals.
+For an independently configured PostgreSQL environment, use `npm start -- --port 3002` after building.
 
-## Validation
+### Server-only environment variables
+
+Never commit real values. `.env.local`, generated local credentials, media and deployment state are ignored. Hosted values belong in private Vercel environment configuration.
+
+| Variable                                            | Purpose                                                                                           |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                                      | PostgreSQL connection; isolated development database locally                                      |
+| `BETTER_AUTH_SECRET`                                | High-entropy session/authentication secret                                                        |
+| `BETTER_AUTH_URL`                                   | Exact application origin; public production uses the live URL above                               |
+| `DEMO_EMAIL`, `DEMO_PASSWORD`                       | Server-side demo seed identity/credential; visitors use the demo button                           |
+| `SHARE_SECRET`                                      | Share capability protection; preserve across releases to retain valid links                       |
+| `BLOB_READ_WRITE_TOKEN`                             | Private recording/derived media store; required for cloud uploads                                 |
+| `CLIP_SHARE_ORIGIN`                                 | Public clip-only viewer origin; production uses `https://sounding-clips-umair-rathore.vercel.app` |
+| `OPENAI_API_KEY`                                    | Server API key; never a `NEXT_PUBLIC_` variable                                                   |
+| `TRANSCRIPTION_MODEL`                               | Approved model configuration, currently `gpt-4o-transcribe-diarize`                               |
+| `TRANSCRIPTION_LANGUAGE`                            | Optional supported language hint                                                                  |
+| `AI_PROCESSING_ENABLED`, `AI_APPROVED_RECORDING_ID` | Explicit processing gate and recording allowlist; keep disabled for ordinary local/evaluator use  |
+| `TEMPORARY_CLEANUP_SECRET`                          | Local operator configuration for the separate cleanup deployment                                  |
+
+The cleanup-only project uses private `DATABASE_URL`, `BLOB_READ_WRITE_TOKEN` and `CRON_SECRET`. It is not the main app. Database budget authorization is additional to environment configuration. OAuth/SMTP/Resend credentials are not required or used by the current disposable-account flow; historical email flags do not enable it.
+
+## Tests and verified release
 
 ```sh
 npm test
 npm run typecheck
 npm run lint
-npm run format:check
 npm run build
-npm run test:neon
-npm run test:auth:http
+python3 -m unittest discover -s tests -p test_capture.py -v
+node scripts/check-staged.mjs
 ```
 
-The current suite verifies temporary credentials and expiry, cleanup retries, authentication isolation, recording security, clip sharing and the simulated recording journey. Exact release counts are in the disposable-authentication report.
-
-The original unprotected demo smoke script remains in scripts/smoke.ts for that release. The authentication branch uses scripts/auth-smoke.ts. Authorized checks against the protected Vercel preview use:
+With the local app running, the current HTTP suites can also be run against isolated local test data:
 
 ```sh
-AUTH_SMOKE_VERCEL=true SMOKE_URL=https://sounding-preview-umair-rathore.vercel.app npm run test:auth:http
+npx tsx scripts/temporary-auth-smoke.ts
+npm run test:recordings:http
+npx tsx scripts/journey-smoke.ts
+npx tsx scripts/capture-smoke.ts
 ```
 
-This uses the signed-in Vercel CLI for platform access and does not disable deployment protection. Application-level unauthenticated requests still omit Sounding session cookies.
+Some operator suites require private configured test fixtures; do not run cleanup, real-clip or database maintenance scripts against shared production data casually. Protected-preview HTTP checks use `AUTH_SMOKE_VERCEL=true` and `SMOKE_URL` with an authorized Vercel CLI; this retains platform protection. Earlier email-auth/demo-only scripts document earlier milestones and are not the current account walkthrough.
 
-Detailed evidence: [authentication verification](docs/AUTH-VERIFICATION.md), [original release verification](docs/VERIFICATION.md), [demo walkthrough](docs/DEMO.md).
+Release evidence for application commit **98d7a46**, verified 2026-10-25:
 
-## Architecture
+- **70/70 automated tests**, TypeScript, ESLint and production build passed.
+- **148 production HTTP/operator checks** passed: disposable authentication 22, recording security 34, journey 19, capture 16 and clip security 57.
+- Anonymous browser checks passed for public entry, registration page, demo entry, playback/seeking and mobile stacking. The preceding release-candidate browser audit covered generated-credential login and onboarding.
+- Public login/registration were accessible without Vercel authentication; private routes/APIs rejected anonymous requests; development preview remained protected.
+- Configured-secret scans passed for checked Git blobs, client assets and capture files. These are scoped checks, not an exhaustive historical-secret or penetration-test guarantee.
 
-Next.js 16 App Router, React 19, strict TypeScript, Tailwind 4/CSS, Lucide, TanStack Virtual and Zod. Inter for the meeting workspace, locally bundled Sora for authentication reference fidelity. Better Auth 1.7.12 and pg provide real server-side sessions and PostgreSQL access.
+The earlier [release-candidate report](docs/RELEASE-CANDIDATE-AUDIT.md) records 205 preview checks and its then-current deployment state. It is historical evidence, not the current deployment guide. No new paid AI call or deployment is needed for this documentation update.
 
-- src/lib/auth-config.ts: maintained library configuration, password policy, verification/reset hooks, Google provider, cookies, sessions and rate limits.
-- src/lib/workspace-store.ts: transactionally initialized workspace rows, user/session ownership joins, state validation and optimistic revision checks.
-- src/components/workspace-provider.tsx: account-scoped client state, serialized persistence and explicit failure feedback.
-- src/app/api/meetings/:id: authenticated owner-only reads/writes.
-- src/lib/sharing.ts: authenticated encryption and expiry for read-only snapshots.
-- migrations/: generated core auth schema and versioned application tables.
+## Research and submission integrity
 
-Authorization is checked in server layouts/pages and each private API. Database queries also require a matching, unexpired session. Private data is scoped by user; demo data by visitor session. No unidentified historical localStorage data is imported into private accounts.
+Product reconnaissance is under [recon/](recon/PRODUCT-RECONNAISSANCE.md). Private Fathom screenshots, recordings and transcripts are excluded from Git. [CAPTURE-TEST.md](CAPTURE-TEST.md) preserves successful canaries and the initial failures. [Capture documentation](docs/AGENT-CAPTURE.md) explains append-only records, genuine turn identifiers and interruption limits.
 
-## Recording journey and clips (local assessment additions)
-
-Open http://localhost:3002/capture after choosing Try the public demo. Connect the sample calendar, admit the stub notetaker, replay either scenario, highlight a moment, finish processing, and open its insights. The replay supports 1×/30×/120×; pause and highlight actions save checkpoints. The explicit skip action uses the complete fixture.
-
-On a meeting, create a clip from the playhead or an annotation, set its title/start/end, preview audio, and save. Share clip creates a 24-hour read-only viewer with selected transcript utterances and standalone extracted WAV audio when available. Whole-meeting sharing remains available for fictional demo meetings only. Download action items exports current owners, completion states and timestamps. Transcript tools include speaker filters, m:ss jumps and previous/next search matches.
-
-These features are included in the development preview release; the original production deployment remains unchanged. Calendar, notetaker, recording lifecycle and insight extraction are explicitly simulated. The hour-long fixture remains transcript-only. See [the verified assessment matrix and evidence](docs/ASSESSMENT-GAP-AUDIT.md).
-
-Run `npx tsx scripts/journey-smoke.ts` against the local app on port 3002 for clip/journey HTTP checks. It uses isolated demo sessions, keeps cookies/share URLs in memory and signs out its sessions afterward.
-
-## Module 1: real recording processing
-
-[Upload Recording](http://localhost:3002/upload) adds private MP4/WebM/MP3/M4A/WAV uploads (five minutes, 24 MB), grounded OpenAI transcription, strict gpt-4o-mini insights, durable Neon jobs and authorized playback. Public demo visitors cannot upload private recordings or consume AI credits. Existing synthetic meetings remain available.
-
-One authorized 4:27.833 MP4 completed the genuine browser upload → transcription → analysis → persistent meeting → original playback journey: 56 segments, four evidence-linked actions, one highlight. Exactly two billable requests ran. Final token-based estimated cost: US$0.0781; conservative ledger reservations: US$0.40 of the US$1 authorization. Further paid processing is disabled pending new authorization.
-
-See [Module 1 architecture, cost reconciliation, evidence and limitations](docs/REAL-AI-PROCESSING.md), and [the transcript quality diagnosis and verified readability fixes](docs/TRANSCRIPT-QUALITY-REVIEW.md). Credentials, recordings, QA account data and private output stay outside Git in ignored configuration and private storage.
-
-## Fixtures and limitations
-
-Atlas launch review has four scripted speakers, eight transcript turns and self-generated Microsoft Zira speech. Timing comes from the actual PCM media boundaries. The participant tiles are illustrative, not video or real diarization. The eight-speaker planning meeting has 240 synthetic segments across 60 minutes. Two additional transcript-only fixtures demonstrate design and customer discussions.
-
-Synthetic-meeting summaries and Ask are deterministic seeded behavior. Uploaded recordings use the cached real AI analysis; Ask remains a labeled keyword lookup. Guidance notes persist but are not interpreted by a model. English/Auto retains English source text. No live conferencing bot, real calendar/CRM integration, billing, invitations are connected. The calendar/notetaker journey is a labeled stub; clip creation and secure audio-only export work for both uploaded recordings and fixtures.
-
-New clip links are revocable, expire after 24 hours, and are invalidated when the saved clip changes or is deleted. Legacy v1 fictional snapshots remain usable until their original expiry. Keep the same SHARE_SECRET when maintaining an existing deployment's links. Existing production environment variables and deployment were not changed.
-
-## Module 2: meeting clips and external sharing
-
-Uploaded meetings now support the existing clip editor, precise extracted-audio previews, saved Neon clips, transcript/highlight selection and revocable guest links. The separate free clip-only viewer permits anonymous access while the main preview stays protected. Original video and unshared transcript are never delivered to recipients. See [the feature audit, working journey, security controls, verified limitations and proof](docs/MODULE-2-CLIPS.md).
-
-## Research and capture integrity
-
-Original product research is under recon/. Authentication adds17 actual browser screenshots and six structured documents in recon/auth/. Fathom screenshots are ignored by Git, including crops that exclude account information. Public implementation screenshots contain only fictional Sounding content or non-sensitive preview infrastructure details.
-
-The project capture hooks remain unchanged. Automatic agent logs were not manually reconstructed, inserted or edited; only automatically generated changes are versioned after review. The current assistant response can only be captured when its Stop hook runs.
-
-## Deployment
-
-Free Vercel Hobby; dedicated Neon Free Plan preview. CLI deployments are explicit; GitHub auto-deploy is not connected. Authentication is not promoted to production until provider configuration and complete login verification are finished. Preview environment secrets are configured independently of Production. No paid resources or plan upgrades were used.
-
-Email registration, OAuth and email recovery have been replaced by name-only temporary registration.
+**Public capture submission is incomplete.** The active local session contains unpublished private material; its older public prefix is not the complete development history. No historical log was reconstructed, sanitized or rewritten in this documentation update. See the [exact inventory, format deviations and recommendation](docs/SUBMISSION-AUDIT.md). Separate private submission is not authorized by the supplied assessment rules and needs written agreement from 8x.

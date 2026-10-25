@@ -1,5 +1,7 @@
 # Registration / onboarding UI polish
 
+> **Historical milestone report.** The complete application was publicly released from `98d7a46` on 2026-10-25. Earlier preview-only, deployment, authentication and test-count statements below describe that milestone. Use the [current README](../README.md) and [assessment guide](ASSESSMENT-GUIDE.md) for present behavior; the original report body is retained as evidence.
+
 This release changes presentation and guided navigation only. Better Auth credentials, temporary-account creation, exact 24-hour expiry, password hashing, isolated workspaces, recovery limitations and the separate cleanup cron are unchanged. No migration, provider authorization, desktop application or paid API call is added.
 
 Disposable signup still asks only for a name and immediately signs in the visitor. The one-time password remains only on the initial welcome screen; **Continue to setup** clears those credentials before navigating into onboarding. Existing login-ID and public-demo entry remain usable. The sign-in page adds three explicitly disabled provider buttons without changing credential login behavior.
