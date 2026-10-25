@@ -154,7 +154,7 @@ export function MeetingView({
     setMore(false);
   }
   return (
-    <>
+    <div className="meeting-page">
       <Header detail shared={shared} />
       {shared && (
         <div className="shared-banner">
@@ -242,7 +242,11 @@ export function MeetingView({
             )}
           </div>
         </section>
-        <aside className={`call-sidebar ${showSidebar ? "show-mobile-sidebar" : ""}`}>
+        <aside
+          className={`call-sidebar ${showSidebar ? "show-mobile-sidebar" : ""}`}
+          aria-label="Meeting insights"
+          tabIndex={0}
+        >
           <h1 className="meeting-title">{meeting.title}</h1>
           <p className="meeting-date">
             {new Date(meeting.date).toLocaleDateString("en-US", {
@@ -591,6 +595,6 @@ export function MeetingView({
           {toast}
         </div>
       )}
-    </>
+    </div>
   );
 }
