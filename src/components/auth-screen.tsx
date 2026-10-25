@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { AudioLines, ArrowRight, Play, ShieldCheck } from "lucide-react";
+import { AudioLines, ArrowRight, Play, ShieldCheck, Globe } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { safeReturnPath } from "@/lib/http-security";
 export type AuthMode = "login" | "signup" | "email" | "forgot" | "reset";
@@ -174,10 +174,12 @@ export function AuthScreen({
                 onClick={() => {
                   setIssued(null);
                   setReveal(false);
-                  window.location.replace(destination);
+                  window.location.replace(
+                    `/users/sign_up/confirm-personal-email?next=${encodeURIComponent(destination)}`,
+                  );
                 }}
               >
-                Continue to workspace <ArrowRight size={17} />
+                Continue to setup <ArrowRight size={17} />
               </button>
             </div>
           ) : recovery ? (
@@ -211,6 +213,29 @@ export function AuthScreen({
               )}
               {mode === "login" ? (
                 <div className="auth-providers">
+                  <button className="auth-provider auth-provider-static" disabled>
+                    <span className="google-mark" aria-hidden="true">
+                      G
+                    </span>
+                    Continue with Google
+                  </button>
+                  <button className="auth-provider auth-provider-static" disabled>
+                    <span className="microsoft-mark" aria-hidden="true">
+                      <i />
+                      <i />
+                      <i />
+                      <i />
+                    </span>
+                    Continue with Microsoft
+                  </button>
+                  <button className="auth-provider auth-provider-static" disabled>
+                    <Globe size={19} />
+                    Continue with SSO
+                  </button>
+                  <p className="auth-config-note">
+                    Provider sign-in is unavailable in this demo. Use your login ID or create a
+                    temporary account.
+                  </p>
                   <Link
                     className="auth-provider"
                     href={`/users/sign_in/email?next=${encodeURIComponent(destination)}`}
