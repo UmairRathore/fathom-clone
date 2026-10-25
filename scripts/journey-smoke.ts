@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { vercelFetch } from "./vercel-fetch";
 const base = process.env.SMOKE_URL ?? "http://localhost:3002";
+const transport = process.env.AUTH_SMOKE_VERCEL === "true" ? vercelFetch : fetch;
 let count = 0;
 function check(ok: boolean, label: string) {
   assert(ok, label);
@@ -13,7 +15,7 @@ async function send(
   method = body ? "POST" : "GET",
   origin = base,
 ) {
-  return fetch(base + path, {
+  return transport(base + path, {
     method,
     headers: { "Content-Type": "application/json", origin, ...(cookie ? { cookie } : {}) },
     body: body ? JSON.stringify(body) : undefined,
