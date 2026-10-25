@@ -5,10 +5,12 @@ export function Modal({
   title,
   close,
   children,
+  className = "",
 }: {
   title: string;
   close: () => void;
   children: React.ReactNode;
+  className?: string;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -54,12 +56,18 @@ export function Modal({
   }, []);
   return (
     <div
-      className="modal-backdrop"
+      className={`modal-backdrop ${className.includes("support-dialog") ? "support-backdrop" : ""}`}
       onClick={(e) => {
         if (e.target === e.currentTarget) close();
       }}
     >
-      <div className="modal" role="dialog" aria-modal="true" aria-labelledby={titleId} ref={root}>
+      <div
+        className={`modal ${className}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        ref={root}
+      >
         <div className="modal-header">
           <h2 id={titleId}>{title}</h2>
           <button aria-label="Close dialog" onClick={close}>

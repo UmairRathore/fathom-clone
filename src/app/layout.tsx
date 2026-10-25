@@ -8,6 +8,7 @@ import "@fontsource/sora/latin-500.css";
 import "@fontsource/sora/latin-600.css";
 import "@fontsource/sora/latin-700.css";
 import "./auth.css";
+import "./product-surfaces.css";
 export const metadata: Metadata = {
   title: "Sounding · Your meetings, remembered",
   description:

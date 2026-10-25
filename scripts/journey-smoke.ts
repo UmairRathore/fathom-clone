@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-const base = "http://localhost:3002";
+const base = process.env.SMOKE_URL ?? "http://localhost:3002";
 let count = 0;
 function check(ok: boolean, label: string) {
   assert(ok, label);
