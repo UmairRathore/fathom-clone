@@ -38,3 +38,15 @@ The reusable existing modal gained an optional styling class, preserving its foc
 - Authentication/backend libraries, migrations, cleanup scheduler, source private media and logging hooks remain unchanged. The private current automatic log is excluded from commits.
 
 Run `npx tsx scripts/locked-surfaces-smoke.ts` for local checks. Set `SMOKE_URL` and `AUTH_SMOKE_VERCEL=true` for the protected preview. The existing journey smoke script now accepts `SMOKE_URL` so its unchanged assertions can target the current test server.
+
+## Deployed release evidence
+
+- Implementation commit: a5b878c, pushed to codex/authentication-preview.
+- Protected preview: https://sounding-preview-umair-rathore.vercel.app . Immutable deployment: fathom-clone-bvm72uqbb-umair-rathore.vercel.app (HcQ53BsimwSK3DtiQF8acmGpN1y6). Vercel Authentication remains enabled.
+- All 49 locked-surface HTTP checks pass on the deployed preview. Seven final-release checks also pass, including Secure/HttpOnly session cookies, demo entry, logout revocation and unchanged public production availability.
+- Deployed browser global search still returns sample meetings and opens the correct meeting detail with recording media present. Browser profile logout was verified locally. No real provider, referral, ticket, trial, purchase or deletion was triggered.
+- Screenshot files: team-calls.png, playlists.png, deals.png, refer-modal.png, settings-connections.png, settings-premium.png, settings-integrations.png, settings-api-options.png, settings-apps-highlights-delete.png, settings-full.png, help-feedback.png, points-popover.png, profile-dropdown.png, mobile-settings.png and mobile-deals.png. The completion report links the local screenshot gallery; these are not runtime assets.
+- All four new routes pass the 390 px no-horizontal-overflow check. Support and account panels fit that viewport. Mobile Deals scrolls inside its dialog. Temporary viewport overrides were reset.
+- Final private-output and configured-secret scans pass. Historical log prefix and all 22 appended capture frames validate; logging hooks and other historical logs are unchanged. The current private log is excluded from commits.
+- Original public production deployment A6s6ZwNCC2QE622thEYELCSaYY37 is unchanged. The public clip viewer and cleanup-only project were not redeployed.
+- Additional paid API spending: USD 0. No billing or paid resource was enabled.
