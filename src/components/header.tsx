@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Download,
   LogOut,
+  UserRound,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useWorkspace } from "./workspace-provider";
@@ -33,6 +34,7 @@ export function Logo() {
 export function Header({ detail = false, shared = false }: { detail?: boolean; shared?: boolean }) {
   const workspace = useWorkspace();
   const meetings = workspace?.saved.map((entry) => entry.meeting) ?? [];
+  const initial = Array.from(workspace?.profile.name.trim() ?? "")[0]?.toUpperCase();
   const path = usePathname();
   const [query, setQuery] = useState("");
   const [menu, setMenu] = useState(false),
@@ -219,7 +221,7 @@ export function Header({ detail = false, shared = false }: { detail?: boolean; s
                       setPoints(false);
                     }}
                   >
-                    {workspace?.profile.name[0]?.toUpperCase() ?? "D"}
+                    {initial || <UserRound size={16} aria-hidden="true" />}
                   </button>
                   {menu && (
                     <div
