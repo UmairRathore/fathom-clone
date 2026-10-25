@@ -2113,15 +2113,7 @@ button:hover {
     position: relative;
     padding-top: 25px;
   }
-  .library-heading {
-    display: none;
-  }
   .library-tools {
-    position: absolute;
-    right: 30px;
-    top: 17px;
-    width: 235px;
-    margin: 0;
     gap: 6px;
   }
   .library-tools .local-search {
