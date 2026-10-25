@@ -24,4 +24,14 @@ The design uses the supplied references: dark backgrounds, centered header, cyan
 - 23 local HTTP checks pass: disabled providers, authenticated setup routes, anonymous redirects, disabled initial controls, final Skip and safe return destination handling. Run `npx tsx scripts/onboarding-smoke.ts`; set `SMOKE_URL` and `AUTH_SMOKE_VERCEL=true` for the protected preview.
 - Local real-browser checks pass: personal selection → preferences; disabled manual/private selectors; consent false → true → false → true; role selection → Zoom; Zoom Skip → install; final Skip → `/home`.
 - TypeScript, lint and production build pass. Private-output scanning passes. No backend files, existing migrations, logging hooks or cleanup configuration are changed.
-- Final preview screenshot and deployment evidence will be appended after deployment.
+- Protected-preview browser checks also pass for a newly created disposable fixture account: name-only signup, masked one-time welcome, Continue to setup, all guided steps, final Skip into the private workspace and setup Sign out. No generated credential was captured in screenshots or logs.
+
+## Release evidence
+
+- UI implementation commit: 3702205, pushed to codex/authentication-preview.
+- Protected preview: https://sounding-preview-umair-rathore.vercel.app . Immutable deployment: fathom-clone-9od5v831p-umair-rathore.vercel.app (CWqhQhgjNkvuxQAZQaf6GzdYr5it). Vercel Authentication remains on.
+- All 23 onboarding HTTP checks also pass against the deployed preview.
+- Screenshots captured in supplied order: screen-1-sign-in.png, screen-2-personal-team.png, screen-3-preferences-unchecked.png, screen-4-preferences-checked.png, screen-5-role.png, screen-6-zoom.png, screen-7-desktop.png. Additional credential-free mobile-preferences.png and lower-login-controls evidence were saved locally. Screenshot gallery is supplied with the completion report; images are not required runtime assets.
+- Desktop two-card layout verified at 1440 px; all five setup routes checked at 390 px with no horizontal overflow. Temporary browser viewport overrides were reset.
+- Configured-secret scan passes for five automatic logs, 457 reachable Git blobs and 41 client assets. Historical log prefix and capture-frame digests remain intact; the current private log is excluded from commits.
+- Original public production deployment A6s6ZwNCC2QE622thEYELCSaYY37 is unchanged. The existing clip viewer and cleanup project were not redeployed. No API spending or backend integration was added.
