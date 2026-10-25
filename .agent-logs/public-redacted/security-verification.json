@@ -1,0 +1,30 @@
+{
+  "utf8Valid": true,
+  "allOtherCapturedBytesExact": true,
+  "googleUrlRedactions": 1,
+  "googleCredentialAbsent": true,
+  "allFiveOriginalHashesUnchanged": true,
+  "capturedEventsInActiveCopy": 78,
+  "activePrompts": 45,
+  "activeResponses": 33,
+  "allFiveUniquePrompts": 49,
+  "allFiveUniqueResponses": 36,
+  "configuredSecretReferencesChecked": 12,
+  "secretShapeCounts": {
+    "providerKeys": 0,
+    "jwt": 0,
+    "privateKeys": 0,
+    "databaseCredentials": 0,
+    "sessionCookies": 0
+  },
+  "reviewedOwnerProvidedEmailIdentifiers": 1,
+  "ownerEmailIsIdentifierNotCredential": true,
+  "activePrivateAccessUrlsFound": 0,
+  "remainingShareCapabilityRevoked": true,
+  "revokedLinkAnonymousHttpStatus": 404,
+  "retainedFrameHeaders": 46,
+  "frameIntegrityExceptionEvents": [
+    34
+  ],
+  "scope": "Entire text/context reviewed with opaque values suppressed; configured-value and generic scans are additional checks. Revocation checked live without mutation."
+}

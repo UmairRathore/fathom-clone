@@ -1,0 +1,69 @@
+{
+  "kind": "explicitly-redacted-publication-copy",
+  "sourceFile": ".agent-logs/2026-10-24_16-16-26_01a16eb2-ea7d-7931-9917-4a2a411826f5.md",
+  "publicFile": ".agent-logs/public-redacted/2026-10-24_16-16-26_01a16eb2-ea7d-7931-9917-4a2a411826f5.PUBLIC-REDACTED.md",
+  "snapshotThroughEvent": 65,
+  "snapshotIncludesThisTurnsFinalResponse": false,
+  "sourceAsFound": {
+    "sha256": "46d8b84ceb274befb92c91a5559cd8a249fb54a35ae47a73e90535ecc1468225",
+    "bytes": 119663
+  },
+  "publicSha256": "49f2ef9d372a6588acb7ed02d795e98677c7e03a4ac786a2a182c09c8333d538",
+  "publicBytes": 119563,
+  "redactions": [
+    {
+      "event": 34,
+      "category": "Google authentication URL containing reauthentication proof",
+      "replacement": "[REDACTED — GOOGLE AUTHENTICATION TOKEN]"
+    }
+  ],
+  "activeSessionCounts": {
+    "file": "2026-10-24_16-16-26_01a16eb2-ea7d-7931-9917-4a2a411826f5.md",
+    "prompts": 45,
+    "responses": 33
+  },
+  "allFiveSessionCounts": [
+    {
+      "file": "2026-10-24_14-21-43_01a16e49-e0a1-7853-9c10-2100f6f587c3.md",
+      "prompts": 1,
+      "responses": 0
+    },
+    {
+      "file": "2026-10-24_14-23-52_01a16e4b-e265-79f2-90b4-7bb4e940f7d8.md",
+      "prompts": 1,
+      "responses": 1
+    },
+    {
+      "file": "2026-10-24_14-30-53_01a16e52-4808-7392-b54f-471f4291de4f.md",
+      "prompts": 1,
+      "responses": 1
+    },
+    {
+      "file": "2026-10-24_14-30-57_01a16e52-5c4e-7cb2-890c-176aeeb9734b.md",
+      "prompts": 1,
+      "responses": 1
+    },
+    {
+      "file": "2026-10-24_16-16-26_01a16eb2-ea7d-7931-9917-4a2a411826f5.md",
+      "prompts": 45,
+      "responses": 33
+    }
+  ],
+  "totalUniquePrompts": 49,
+  "totalUniqueResponses": 36,
+  "preexistingSourceIntegrityMismatch": [
+    {
+      "event": 34,
+      "declaredBytes": 1371,
+      "actualBytes": 1351
+    }
+  ],
+  "originalFrameHeadersAndChecksumsPreserved": true,
+  "publicCopyDiffersOnlyByOneUrlReplacement": true,
+  "otherFourOriginalsSha256": {
+    "2026-10-24_14-21-43_01a16e49-e0a1-7853-9c10-2100f6f587c3.md": "d6a98e3ade27760b9c629237c5f468abfc7da4287787de5ec4af089a202be569",
+    "2026-10-24_14-23-52_01a16e4b-e265-79f2-90b4-7bb4e940f7d8.md": "634c1a95f108c971fdaba67cc6f80784f9b851f7136476eff629cda6a1d9eeed",
+    "2026-10-24_14-30-53_01a16e52-4808-7392-b54f-471f4291de4f.md": "13471c66cf620e6359f657692fe2dbd1127eb34e2391461b85f189cc6eed80c8",
+    "2026-10-24_14-30-57_01a16e52-5c4e-7cb2-890c-176aeeb9734b.md": "348ede97dfdf13fc3f996a06f8d66a1042d8e8e5103302948b9e3837c8fce396"
+  }
+}
